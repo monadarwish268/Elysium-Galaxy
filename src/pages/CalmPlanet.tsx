@@ -1,0 +1,1 @@
+export const CalmPlanet = () => <h2>Calm Planet Hub</h2>;

@@ -1,0 +1,1 @@
+export const CheckIn = () => <h2>AI Check-In Page</h2>;

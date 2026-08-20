@@ -1,0 +1,1 @@
+export const HappinessPlanet = () => <h2>Happiness Planet Hub</h2>;

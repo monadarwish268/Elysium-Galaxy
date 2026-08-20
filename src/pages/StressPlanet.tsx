@@ -1,0 +1,1 @@
+export const StressPlanet = () => <h2>Stress Planet Hub</h2>;

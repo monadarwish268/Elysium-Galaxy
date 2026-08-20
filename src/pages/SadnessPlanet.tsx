@@ -1,0 +1,1 @@
+export const SadnessPlanet = () => <h2>Sadness Planet Hub</h2>;
