@@ -59,7 +59,7 @@ export  function SpaceBackground() {
       depth: Math.random() * 2 + 0.5,
     }));
 
-    let shootingStar = {
+    const shootingStar = {
       x: Math.random() * width,
       y: Math.random() * (height / 2),
       length: Math.random() * 90 + 40,
