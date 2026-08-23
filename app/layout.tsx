@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
 import { SpaceBackground } from "@/Component/SpaceBack";
-import StarNavbar from "@/Component/page"; // هيدا المكون تبع النجمة
+import Navbar from "@/Component/Navbar"; 
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   description: "Explore Your Emotional Universe",
 };
 
+
 export default function RootLayout({
   children,
 }: {
@@ -31,9 +32,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col relative bg-black text-white">
         <SpaceBackground />
-        <StarNavbar /> {/* الـ Navbar تبع النجمة فقط */}
-        <main className="flex-1 relative z-10">{children}</main>
+        <Navbar />
+        <main className="flex-1 relative z-10 pt-4">{children}</main>
       </body>
     </html>
+    
   );
 }
