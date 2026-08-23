@@ -29,7 +29,7 @@ body {
   @apply flex flex-col items-center text-center pt-10 pb-6 px-4 max-w-4xl mx-auto z-10;
 }
 
-/* Badge Styling */
+Badge Styling
 .hero-badge {
   @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-cyan-300 mb-6 backdrop-blur-md;
 }
