@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export default function Hero() {
   return (
@@ -15,15 +16,17 @@ export default function Hero() {
 
       
       <div className="hero-buttons">
-        <button className="btn-primary">
-          Start AI Emotional Assessment
-          <span className="btn-icon">🤖</span>
-        </button>
+        <Link href="/assessment">
+          <button className="btn-primary">
+            Start AI Emotional Assessment
+            <span className="btn-icon">🤖</span>
+          </button>
+        </Link>
 
-        <button className="btn-secondary">
-          Directly Explore Galaxy
-          <span className="btn-icon">🪐</span>
-        </button>
+        <Link href="/galaxy1" className="btn-secondary">
+            Directly Explore Galaxy
+            <span className="btn-icon">🪐</span>
+        </Link>
       </div>
     </section>
   );
