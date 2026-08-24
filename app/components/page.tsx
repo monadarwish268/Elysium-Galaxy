@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { INITIAL_PLANETS } from '@/data/PlanetData';
 import { PlanetConfig, OrbitControlsConfig, CameraPreset } from '@/types';
-import { PlanetOrbitCanvas } from '@/Components/PlanetOrbitCanvas';
+import { PlanetOrbitCanvas } from '@/app/components/PlanetOrbitCanvas';
 
 
 

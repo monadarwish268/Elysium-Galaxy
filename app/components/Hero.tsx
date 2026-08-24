@@ -16,11 +16,9 @@ export default function Hero() {
 
       
       <div className="hero-buttons">
-        <Link href="/assessment">
-          <button className="btn-primary">
+            <Link href="/check-in" className="btn-primary">
             Start AI Emotional Assessment
-            <span className="btn-icon">🤖</span>
-          </button>
+            <span className="btn-icon">🪐</span>
         </Link>
 
         <Link href="/galaxy1" className="btn-secondary">

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { PlanetConfig, OrbitControlsConfig, CameraPreset } from '../types';
+import { PlanetConfig, OrbitControlsConfig, CameraPreset } from '@/types';
 import {
   generateTerrestrialTexture,
   generateVolcanicTexture,
@@ -11,7 +11,7 @@ import {
   generateCloudTexture,
   generateRingTexture,
   createAtmosphereMaterial,
-} from '../utils/textureGenerator';
+} from '@/utils/textureGenerator';
 
 interface PlanetOrbitCanvasProps {
   planets: PlanetConfig[];

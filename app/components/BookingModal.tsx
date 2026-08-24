@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ChevronLeft, UserCircle, Star, Video, MessageSquare, CheckCircle2 } from 'lucide-react';
-import { DATES, SLOTS, Psychologist } from '../data/premiumData';
+import { DATES, SLOTS, Psychologist } from '@/app/premium/data/premiumData';
 
 interface Props {
   selectedDoc: Psychologist;
