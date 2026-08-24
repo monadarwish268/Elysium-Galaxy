@@ -80,3 +80,27 @@ Badge Styling
 .btn-icon {
   @apply text-base;
 }
+@import "tailwindcss";
+
+@layer components {
+  /* Galaxy Dark Theme Utilities */
+  .galaxy-bg {
+    @apply bg-[#0b0b1e] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1d1238] via-[#0b0b1e] to-[#05050f] text-white min-h-screen font-sans;
+  }
+
+  .galaxy-card {
+    @apply bg-[#13172e]/80 border border-[#23294a] rounded-2xl backdrop-blur-md transition-all duration-300 hover:border-[#3b4371];
+  }
+
+  .galaxy-gold-card {
+    @apply bg-[#13172e]/90 border border-amber-500/40 rounded-2xl p-6 shadow-lg shadow-amber-500/5 backdrop-blur-md;
+  }
+
+  .btn-gold {
+    @apply bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold px-6 py-2 rounded-full transition-all duration-200 shadow-md active:scale-95;
+  }
+
+  .btn-accent {
+    @apply bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-medium px-4 py-2 rounded-full transition-all duration-200 shadow-lg shadow-cyan-500/20;
+  }
+}

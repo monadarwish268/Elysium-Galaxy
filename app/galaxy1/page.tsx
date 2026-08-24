@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { INITIAL_PLANETS } from '@/data/PlanetData';
 import { PlanetConfig, OrbitControlsConfig, CameraPreset } from '@/types';
-import { PlanetOrbitCanvas } from '@/Component/PlanetOrbitCanvas';
+import { PlanetOrbitCanvas } from '@/Components/PlanetOrbitCanvas';
 
 
 export default function GalaxyPage() {
