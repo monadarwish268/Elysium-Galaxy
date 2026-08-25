@@ -25,71 +25,63 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.hero-container {
-  @apply flex flex-col items-center text-center pt-10 pb-6 px-4 max-w-4xl mx-auto z-10;
-}
-
-Badge Styling
-.hero-badge {
-  @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-cyan-300 mb-6 backdrop-blur-md;
-}
-
-.badge-icon {
-  @apply text-cyan-400;
-}
-
-/* Title Styling */
-.hero-title {
-  @apply text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white mb-4 leading-tight;
-}
-
-.gradient-text {
-  @apply bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent;
-}
-
-/* Description Styling */
-.hero-description {
-  @apply text-gray-400 text-sm md:text-base max-w-xl font-light mb-8 leading-relaxed;
-}
-
-/* Buttons Container */
-.hero-buttons {
-  @apply flex flex-col sm:flex-row items-center gap-4;
-}
-
-/* Primary Button (AI Assessment) */
-.btn-primary {
-  @apply px-8 py-4 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 text-[#070D1D] font-medium text-xl transition-all duration-300 flex items-center gap-2 cursor-pointer;
-  box-shadow: 0 0 25px rgba(84, 210, 255, 0.4);
-}
-
-.btn-primary:hover {
-  box-shadow: 0 0 35px rgba(84, 210, 255, 0.7);
-  transform: translateY(-1px);
-}
-
-/* Secondary Button (Explore Galaxy) */
-.btn-secondary {
-  @apply px-8 py-4 rounded-full bg-transparent border border-white/20 text-white font-medium text-xl transition-all duration-300 flex items-center gap-2 cursor-pointer;
-}
-
-.btn-secondary:hover {
-  @apply bg-white/10 border-white/40;
-}
-
-.btn-icon {
-  @apply text-base;
-}
-@import "tailwindcss";
-
 @layer components {
-  /* Galaxy Dark Theme Utilities */
+  .hero-container {
+    @apply flex flex-col items-center text-center pt-10 pb-6 px-4 max-w-4xl mx-auto z-10;
+  }
+
   .galaxy-bg {
-    @apply bg-[#0b0b1e] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1d1238] via-[#0b0b1e] to-[#05050f] text-white min-h-screen font-sans;
+    @apply min-h-screen bg-[#0b0b1e] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1d1238] via-[#0b0b1e] to-[#05050f] text-white font-sans;
   }
 
   .galaxy-card {
-    @apply bg-[#13172e]/80 border border-[#23294a] rounded-2xl backdrop-blur-md transition-all duration-300 hover:border-[#3b4371];
+    @apply rounded-2xl border border-[#23294a] bg-[#13172e]/80 backdrop-blur-md transition-all duration-300 hover:border-[#3b4371];
+  }
+
+  .hero-badge {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs text-cyan-300 backdrop-blur-md;
+  }
+
+  .hero-title {
+    @apply mb-4 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl;
+  }
+
+  .hero-description {
+    @apply mb-8 max-w-xl text-sm font-light leading-relaxed text-gray-400 md:text-base;
+  }
+
+  .btn-primary {
+    @apply flex cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 px-8 py-4 text-xl font-medium text-[#070D1D] transition-all duration-300;
+    box-shadow: 0 0 25px rgba(84, 210, 255, 0.4);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 35px rgba(84, 210, 255, 0.7);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    @apply flex cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-transparent px-8 py-4 text-xl font-medium text-white transition-all duration-300;
+  }
+
+  .btn-secondary:hover {
+    @apply border-white/40 bg-white/10;
+  }
+
+  .hero-buttons {
+    @apply flex flex-col items-center gap-4 sm:flex-row;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent;
+  }
+
+  .badge-icon {
+    @apply text-cyan-400;
+  }
+
+  .btn-icon {
+    @apply text-base;
   }
 
   .galaxy-gold-card {

@@ -1,24 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+
+// Client-side subscriber helper to handle SSR hydration safely
+const emptySubscribe = () => () => {};
 
 export default function ResultPage() {
   const router = useRouter();
 
-  const [score, setScore] = useState<number | null>(null);
+  // Safely check if mounted on client without calling setState in useEffect
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
-  useEffect(() => {
+  // Read score directly from localStorage once on client mount
+  const [score] = useState<number | null>(() => {
+    if (typeof window === "undefined") return null;
     const step1 = Number(localStorage.getItem("step1Score") || 0);
     const step2 = Number(localStorage.getItem("step2Score") || 0);
     const step3 = Number(localStorage.getItem("step3Score") || 0);
+    return Math.round((step1 + step2 + step3) / 3);
+  });
 
-    const finalScore = Math.round((step1 + step2 + step3) / 3);
-
-    setScore(finalScore);
-  }, []);
-
-  if (score === null) {
+  // Also fixed the Tailwind warning at the bottom (bg-linear-to-r)
+  if (!isClient || score === null) {
     return (
       <main className="flex min-h-screen items-center justify-center text-white">
         Loading...
@@ -27,38 +35,44 @@ export default function ResultPage() {
   }
 
   let mood = "";
+  let planetKey = "";
   let description = "";
   let emoji = "";
 
   if (score <= 20) {
     mood = "Happiness";
+    planetKey = "happiness";
     description =
       "You seem to be feeling light, positive, and full of good energy.";
     emoji = "✨";
   } else if (score <= 40) {
     mood = "Calm";
+    planetKey = "calm";
     description =
       "Your emotional state seems relatively peaceful and balanced.";
     emoji = "🌙";
   } else if (score <= 59) {
     mood = "Self-Love";
+    planetKey = "self-love";
     description =
       "Take a moment to appreciate yourself and give yourself the care you deserve.";
     emoji = "💗";
   } else if (score <= 79) {
     mood = "Sadness";
+    planetKey = "sadness";
     description =
       "You may be carrying some emotional heaviness. Give yourself space and kindness.";
     emoji = "💧";
   } else {
     mood = "Stress";
+    planetKey = "stress";
     description =
       "Your answers suggest that you may be feeling overwhelmed or under pressure.";
     emoji = "🔥";
   }
 
   function goToPlanet() {
-    router.push(`/planet/${mood.toLowerCase()}`);
+    router.push(`/planet/${planetKey}`);
   }
 
   return (
@@ -119,7 +133,7 @@ export default function ResultPage() {
           <button
             type="button"
             onClick={goToPlanet}
-            className="mt-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-8 py-3 font-semibold transition hover:scale-105"
+            className="mt-10 rounded-full bg-linear-to-r from-blue-500 to-purple-500 px-8 py-3 font-semibold transition hover:scale-105"
           >
             Go to {mood} Planet
           </button>

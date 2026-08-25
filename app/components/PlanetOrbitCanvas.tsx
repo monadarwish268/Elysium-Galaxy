@@ -1,17 +1,51 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { useRouter } from 'next/navigation';
 import { PlanetConfig, OrbitControlsConfig, CameraPreset } from '@/types';
-import {
-  generateTerrestrialTexture,
-  generateVolcanicTexture,
-  generateGasGiantTexture,
-  generateRingedGiantTexture,
-  generateIceGiantTexture,
-  generateEmotionTexture,
-  generateCloudTexture,
-  generateRingTexture,
-  createAtmosphereMaterial,
-} from '@/utils/textureGenerator';
+
+const createTexture = (color: string, secondaryColor = color, striped = false) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 256;
+  const context = canvas.getContext('2d');
+  if (!context) return new THREE.CanvasTexture(canvas);
+
+  const gradient = context.createLinearGradient(0, 0, 256, 256);
+  gradient.addColorStop(0, color);
+  gradient.addColorStop(1, secondaryColor);
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 256, 256);
+
+  if (striped) {
+    context.globalAlpha = 0.25;
+    context.fillStyle = secondaryColor;
+    for (let y = 10; y < 256; y += 28) context.fillRect(0, y, 256, 8);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+};
+
+const generateTerrestrialTexture = createTexture;
+const generateVolcanicTexture = createTexture;
+const generateGasGiantTexture = (color: string, secondaryColor: string) =>
+  createTexture(color, secondaryColor, true);
+const generateRingedGiantTexture = (color: string, secondaryColor: string) =>
+  createTexture(color, secondaryColor, true);
+const generateIceGiantTexture = createTexture;
+const generateEmotionTexture = (_emotion: string, color: string, secondaryColor: string) =>
+  createTexture(color, secondaryColor);
+const generateCloudTexture = (color: string) => createTexture(color, '#ffffff');
+const generateRingTexture = (color: string) => createTexture(color, '#8b7355', true);
+const createAtmosphereMaterial = (color: string, intensity: number) =>
+  new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity: Math.min(0.65, Math.max(0.08, intensity * 0.22)),
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    depthWrite: false,
+  });
 
 interface PlanetOrbitCanvasProps {
   planets: PlanetConfig[];
@@ -19,7 +53,7 @@ interface PlanetOrbitCanvasProps {
   cameraPreset: CameraPreset;
   onHoverPlanet?: (planet: PlanetConfig | null) => void;
   hoveredPlanetId?: string | null;
-  onPlanetClick?: (planet: PlanetConfig) => void;
+  onPlanetClick?: (id: string | null) => void;
 }
 
 export const PlanetOrbitCanvas: React.FC<PlanetOrbitCanvasProps> = ({
@@ -70,7 +104,7 @@ export const PlanetOrbitCanvas: React.FC<PlanetOrbitCanvasProps> = ({
   const isDraggingRef = useRef(false);
   const previousMousePositionRef = useRef({ x: 0, y: 0 });
   const orbitGroupRef = useRef<THREE.Group | null>(null);
-
+  const router = useRouter();
   useEffect(() => {
     targetCamLookAtRef.current.set(0, 0, 0);
 
@@ -363,12 +397,41 @@ export const PlanetOrbitCanvas: React.FC<PlanetOrbitCanvasProps> = ({
     }
   };
 
-  const handleClick = () => {
-    if (tooltip.visible && tooltip.planet) {
-      onPlanetClick?.(tooltip.planet);
-    }
-  };
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const container = containerRef.current;
+  const camera = cameraRef.current;
+  if (!container || !camera) return;
 
+  const rect = container.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycasterRef.current.setFromCamera(new THREE.Vector2(x, y), camera);
+  const meshesToCheck: THREE.Mesh[] = [];
+  planetMeshesRef.current.forEach((item) => {
+    meshesToCheck.push(item.bodyMesh);
+  });
+
+  const intersects = raycasterRef.current.intersectObjects(meshesToCheck);
+
+  if (intersects.length > 0) {
+    const hitMesh = intersects[0].object as THREE.Mesh;
+    const clickedId = hitMesh.userData.planetId;
+    const clickedPlanet = planets.find((p) => p.id === clickedId);
+
+    if (clickedPlanet) {
+      onPlanetClick?.(clickedPlanet.id);
+      
+      // Extract clean route key (e.g., 'sadness-planet' -> 'sadness')
+      const routeKey = (clickedPlanet.emotionType || clickedPlanet.id)
+        .toLowerCase()
+        .replace(/-planet$/, '')
+        .trim();
+
+      router.push(`/planet/${routeKey}`);
+    }
+  }
+};
   return (
     <div
       id="planet-orbit-canvas-container"

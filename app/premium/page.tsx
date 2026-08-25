@@ -11,7 +11,7 @@ export default function PremiumPage() {
   const [selectedDoc, setSelectedDoc] = useState<Psychologist | null>(null);
 
   return (
-    <div className="min-h-screen bg-[#040817] text-white p-6 md:p-12 pt-24 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-transparent text-white p-6 md:p-12 pt-24 font-sans relative overflow-hidden">
       <div className="max-w-5xl mx-auto space-y-8 relative z-10">
         
         {/* Header */}
@@ -28,7 +28,7 @@ export default function PremiumPage() {
         </div>
 
         {/* Tab Toggle */}
-        <div className="inline-flex p-1 bg-[#0b132b] rounded-full border border-slate-800">
+        <div className="inline-flex p-1 bg-[#0b132b]/80 backdrop-blur-md rounded-full border border-slate-800">
           <button
             type="button"
             onClick={() => setActiveTab('uplift')}

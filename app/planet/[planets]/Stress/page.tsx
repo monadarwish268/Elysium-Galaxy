@@ -1,23 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useParams } from 'next/navigation';
-import { MapPin, Book, HeartHandshake, Trees } from 'lucide-react';
-import { PLANETS_DATA, PlanetDetails } from '@/data/planetsData';
+import Link from 'next/link';
+import { MapPin, Book, HeartHandshake, Trees, ArrowLeft } from 'lucide-react';
+import { PLANETS_DATA } from '@/data/planetsData';
 import ActivityCard from '@/components/ActivityCard';
 import VideoCard from '@/components/VideoCard';
 import MoodReflection from '@/components/MoodReflection';
 
-export default function DynamicPlanetPage() {
-  const params = useParams();
-  
-  // Cleanly extract URL dynamic param (e.g. /planet/stress -> 'stress', /planet/self-love -> 'self-love')
-  const rawParam = params?.planets || params?.id;
-  const planetKey = (Array.isArray(rawParam) ? rawParam[0] : rawParam || 'stress').toLowerCase().trim();
-
-  // Load planet data or fallback cleanly
-  const planet: PlanetDetails = PLANETS_DATA[planetKey] || PLANETS_DATA.calm;
-
+export default function StressPlanetPage() {
+  const planet = PLANETS_DATA.stress;
   const [completedActivities, setCompletedActivities] = useState<string[]>([]);
 
   const toggleActivity = (id: string) => {
@@ -27,15 +19,22 @@ export default function DynamicPlanetPage() {
   };
 
   const getPlaceIcon = (type: string) => {
-    if (type.includes('Bookstore') || type.includes('Café')) return <Book className="w-4 h-4 text-cyan-400" />;
-    if (type.includes('Meditation')) return <HeartHandshake className="w-4 h-4 text-cyan-400" />;
-    return <Trees className="w-4 h-4 text-cyan-400" />;
+    if (type.includes('Bookstore') || type.includes('Café')) return <Book className="w-4 h-4 text-orange-400" />;
+    if (type.includes('Meditation')) return <HeartHandshake className="w-4 h-4 text-orange-400" />;
+    return <Trees className="w-4 h-4 text-orange-400" />;
   };
 
   return (
     <div className="min-h-screen bg-transparent text-slate-100 p-6 md:p-12 font-sans relative z-10">
       <div className="max-w-5xl mx-auto space-y-10">
         
+        <Link 
+          href="/galaxy" 
+          className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-white transition bg-slate-900/80 border border-slate-800 px-4 py-2 rounded-full backdrop-blur-md"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to galaxy
+        </Link>
+
         {/* Dynamic Hero Header */}
         <div className="bg-[#0b132b]/60 border border-slate-800/80 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8 shadow-2xl relative overflow-hidden backdrop-blur-xl">
           <div 
@@ -54,7 +53,7 @@ export default function DynamicPlanetPage() {
           </div>
         </div>
 
-        {/* Personalized Wellness Activities */}
+        {/* 3 Personalized Wellness Activities */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-white">Personalized wellness activities</h2>
@@ -64,7 +63,7 @@ export default function DynamicPlanetPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {planet.activities.map((act) => (
+            {planet.activities.slice(0, 3).map((act) => (
               <ActivityCard
                 key={act.id}
                 activity={act}
@@ -75,7 +74,7 @@ export default function DynamicPlanetPage() {
           </div>
         </div>
 
-        {/* Licensed Psychologist Recommendations */}
+        {/* 2 Psychologist Recommendations */}
         <div className="space-y-4">
           <div>
             <h2 className="text-lg font-bold text-white">Licensed psychologist recommendations</h2>
@@ -83,14 +82,13 @@ export default function DynamicPlanetPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {planet.videos.map((vid) => (
+            {planet.videos.slice(0, 2).map((vid) => (
               <VideoCard key={vid.id} video={vid} />
             ))}
           </div>
         </div>
-        
 
-        {/* AI Mood-based Places Nearby (Tripoli) */}
+        {/* Nearby Places */}
         <div className="space-y-4">
           <div>
             <h2 className="text-lg font-bold text-white">AI mood-based places nearby</h2>
@@ -106,15 +104,15 @@ export default function DynamicPlanetPage() {
                 loading="lazy"
               />
               <div className="p-3 bg-slate-950/90 text-slate-400 text-[11px] flex justify-between items-center border-t border-slate-800">
-                <span className="flex items-center gap-1 text-cyan-400"><MapPin className="w-3.5 h-3.5" /> Live mood map</span>
+                <span className="flex items-center gap-1 text-orange-400"><MapPin className="w-3.5 h-3.5" /> Live mood map</span>
                 <span>{planet.places.length} matches near Tripoli</span>
               </div>
             </div>
 
             <div className="space-y-3">
               {planet.places.map((place, idx) => (
-                <div key={idx} className="bg-[#0b132b]/50 border border-slate-800/80 p-4 rounded-xl flex items-center gap-4 backdrop-blur-md hover:border-cyan-500/40 transition">
-                  <div className="w-9 h-9 rounded-lg bg-cyan-950/60 border border-cyan-800/40 flex items-center justify-center shrink-0">
+                <div key={idx} className="bg-[#0b132b]/50 border border-slate-800/80 p-4 rounded-xl flex items-center gap-4 backdrop-blur-md hover:border-orange-500/40 transition">
+                  <div className="w-9 h-9 rounded-lg bg-orange-950/60 border border-orange-800/40 flex items-center justify-center shrink-0">
                     {getPlaceIcon(place.type)}
                   </div>
                   <div>
@@ -127,7 +125,6 @@ export default function DynamicPlanetPage() {
           </div>
         </div>
 
-        {/* Mood Reflection Component */}
         <MoodReflection />
 
       </div>
