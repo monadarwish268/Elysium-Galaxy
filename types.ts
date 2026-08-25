@@ -3,7 +3,7 @@ export type PlanetEmotionType =
   | 'happiness'
   | 'sadness'
   | 'calm'
-  | 'self-Love'
+  | 'selfLove'
   | 'custom';
 
 export interface EmotionStats {

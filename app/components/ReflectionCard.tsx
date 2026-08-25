@@ -28,7 +28,7 @@ export default function ReflectionCard({ completedActivitiesCount = 0 }: Reflect
   };
 
   return (
-    <div className="bg-[#0a1329]/90 border border-slate-800/80 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden space-y-6">
+    <div className="bg-transparent border border-slate-800/80 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden space-y-6">
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -44,7 +44,7 @@ export default function ReflectionCard({ completedActivitiesCount = 0 }: Reflect
             <span><strong className="text-white">{streak}</strong> streak</span>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-[#0e1b38] border border-slate-800/80 px-3 py-1.5 rounded-full text-xs text-slate-300 font-medium">
+          <div className="flex items-center gap-1.5 bg-transparent backdrop-blur-[20px] border border-slate-800/80 px-3 py-1.5 rounded-full text-xs text-slate-300 font-medium">
             <Sparkles className="w-4 h-4 text-sky-400" />
             <span><strong className="text-white">{completedActivitiesCount}</strong> activities</span>
           </div>
@@ -61,8 +61,8 @@ export default function ReflectionCard({ completedActivitiesCount = 0 }: Reflect
               onClick={() => setSelectedMood(m.id)}
               className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all duration-300 ${
                 isSelected
-                  ? 'bg-sky-950/60 border-sky-400/80 shadow-[0_0_20px_rgba(56,189,248,0.2)] scale-105'
-                  : 'bg-[#0e1a35]/60 border-slate-800/80 hover:bg-[#132247] hover:border-slate-700'
+                  ? 'bg-sky-950/60 backdrop-blur-[20px] border-sky-400/80 shadow-[0_0_20px_rgba(56,189,248,0.2)] scale-105'
+                  : 'bg-[#0e1a35]/25 backdrop-blur-[20px] border-slate-800/80 hover:bg-[#132247] hover:border-slate-700'
               }`}
             >
               <span className="text-3xl">{m.emoji}</span>
@@ -81,8 +81,8 @@ export default function ReflectionCard({ completedActivitiesCount = 0 }: Reflect
           disabled={!selectedMood}
           className={`px-6 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-300 flex items-center gap-2 ${
             selectedMood
-              ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer active:scale-95'
-              : 'bg-indigo-900/40 text-slate-500 border border-indigo-900/40 cursor-not-allowed'
+              ? 'bg-indigo-600 backdrop-blur-[20px] hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer active:scale-95'
+              : 'bg-indigo-900/20 backdrop-blur-[20px] text-slate-500 border border-indigo-900/40 cursor-not-allowed'
           }`}
         >
           {saved && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}

@@ -7,7 +7,7 @@ export const appname = {
 };
 
 export const navbarlinks = [
-  { label: 'Welcome', href: '/' }, // يُفضل التوجيه للـ Root /
+  { label: 'Welcome', href: '/HomePage' }, // يُفضل التوجيه للـ Root /
   { label: 'Galaxy', href: '/galaxy1' },
   { label: 'Premium', href: '/premium' },
 ];

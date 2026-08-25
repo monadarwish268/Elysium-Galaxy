@@ -96,11 +96,11 @@ export const INITIAL_PLANETS: PlanetConfig[] = [
     },
   },
   {
-    id: 'self-Love',
+    id: 'self-love',
     name: 'Vortex',
     symbol: '🌀',
     type: 'ringed_giant',
-    emotionType: 'self-Love',
+    emotionType: 'selfLove',
     color: '#7c3aed',
     secondaryColor: '#a855f7',
     atmosphereColor: '#c084fc',
@@ -116,9 +116,9 @@ export const INITIAL_PLANETS: PlanetConfig[] = [
     rotationSpeed: 0.015,
     orbitAngleOffset: (8 * Math.PI) / 5,
     stats: {
-      emotion: 'Self-Love & Acceptance',
-      feelingState: 'A nurturing embrace of one’s true essence, fostering growth and compassion.',
-      affirmation: 'I am worthy of love and respect, exactly as I am.',
+      emotion: 'Self Love',
+      feelingState: 'Swirling cosmic currents that slow down as breath returns to equilibrium.',
+      affirmation: 'This moment is temporary, and I am safe right here.',
     },
   },
 ];
