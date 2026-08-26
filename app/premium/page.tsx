@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Psychologist } from './data/premiumData';
+import { Psychologist } from '../../data/premiumData';
 import UpliftTab from '@/app/components/UpliftTab';
 import PsychologistList from '@/app/components/PsychologistList';
 import BookingModal from '@/app/components/BookingModal';

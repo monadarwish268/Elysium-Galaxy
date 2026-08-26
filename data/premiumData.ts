@@ -22,7 +22,7 @@ export const PSYCHOLOGISTS: Psychologist[] = [
     specialty: 'Stress & burnout',
     availability: 'Today · 18:30',
     price: 45,
-    avatar: 'https://images.unsplash.com/photo-1594824813566-88855ce78907?auto=format&fit=crop&q=80&w=200',
+    avatar: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=200',
   },
   {
     id: '2',

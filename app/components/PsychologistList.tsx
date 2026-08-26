@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Calendar, CheckCircle2 } from 'lucide-react';
-import { PSYCHOLOGISTS, Psychologist } from '@/app/premium/data/premiumData';
+import { PSYCHOLOGISTS, Psychologist } from '@/data/premiumData';
 
 interface Props {
   onSelectDoc: (doc: Psychologist) => void;
