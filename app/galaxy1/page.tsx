@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import { INITIAL_PLANETS } from "@/data/PlanetData";
 import { PlanetConfig, OrbitControlsConfig, CameraPreset } from "@/types";
-import { PlanetOrbitCanvas } from "@/components/PlanetOrbitCanvas";
-
+import { PlanetOrbitCanvas } from '@/app/components/PlanetOrbitCanvas';
 export default function GalaxyPage() {
   const [planets] = useState<PlanetConfig[]>(INITIAL_PLANETS);
   const [hoveredPlanet, setHoveredPlanet] = useState<PlanetConfig | null>(null);

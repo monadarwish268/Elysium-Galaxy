@@ -6,6 +6,8 @@ import { ArrowLeft, MapPin, Book, Trees, Coffee, Flower2 } from 'lucide-react';
 import { PLANETS_DATA } from '../../../data/planetsData';
 import VideoCard from '../../components/VideoCard';
 import ReflectionCard from '../../components/ReflectionCard';
+import ActivityCard from '@/components/ActivityCard';
+
 
 // أماكن مخصصة لطرابلس، لبنان بحسب المود
 const TRIPOLI_PLACES: Record<string, Array<{ name: string; type: string; distance: string; desc: string; coords: string }>> = {
@@ -82,41 +84,26 @@ export default function DynamicPlanetPage() {
           </div>
         </div>
 
-        {/* Personalized Wellness Activities */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-white">Personalized wellness activities</h2>
-            <span className="text-sky-400 text-xs bg-sky-950/10 border backdrop-blur-[20px] border-sky-800/30 px-3 py-1 rounded-full font-medium">
-              {completedActivities.length} of {planet.activities.length} complete
-            </span>
-          </div>
+       {/* Personalized Wellness Activities */}
+<div className="space-y-4">
+  <div className="flex justify-between items-center">
+    <h2 className="text-2xl font-bold text-white">Personalized wellness activities</h2>
+    <span className="text-sky-400 text-xs bg-sky-950/10 border backdrop-blur-[20px] border-sky-800/30 px-3 py-1 rounded-full font-medium">
+      {completedActivities.length} of {planet.activities.length} complete
+    </span>
+  </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {planet.activities.map((act) => (
-              <div 
-                key={act.id} 
-                onClick={() => toggleActivity(act.id)}
-                className={`p-5 rounded-2xl border cursor-pointer transition-all duration-300 flex flex-col justify-between space-y-3 ${
-                  completedActivities.includes(act.id) 
-                    ? 'bg-indigo-900/10 backdrop-blur-[40px] border-sky-500/60 shadow-[0_0_15px_rgba(56,189,248,0.15)]' 
-                    : 'bg-indigo-900/10 backdrop-blur-[20px] border-slate-800/80 hover:border-slate-700 hover:bg-[#0f172a]'
-                }`}
-              >
-                <div>
-                  <h3 className="font-bold text-sm text-slate-100">{act.title}</h3>
-                  <p className="text-slate-400 text-xs mt-1 leading-relaxed">{act.description}</p>
-                </div>
-                <div className="flex justify-between items-center text-xs text-slate-400 pt-3 border-t border-slate-800/50">
-                  <span>{act.duration}</span>
-                  <span className={completedActivities.includes(act.id) ? 'text-sky-400 font-semibold' : 'text-slate-500'}>
-                    {completedActivities.includes(act.id) ? '✓ Completed' : 'Start →'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {planet.activities.map((act) => (
+      <ActivityCard
+        key={act.id}
+        activity={act}
+        isCompleted={completedActivities.includes(act.id)}
+        onToggle={toggleActivity}
+      />
+    ))}
+  </div>
+</div>
         {/* Licensed Psychologist Recommendations */}
         <div className="space-y-4">
           <div>
