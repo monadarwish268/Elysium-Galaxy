@@ -58,7 +58,7 @@ export function SpaceBackground() {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('resize', handleResize);
 
-    let shootingStar = {
+    const shootingStar = {
       x: Math.random() * width,
       y: Math.random() * (height / 2),
       length: Math.random() * 90 + 40,
