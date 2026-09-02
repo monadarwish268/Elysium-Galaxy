@@ -18,6 +18,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    console.log('Psychologist request body:', body); // Debugging log
     const { name, title, hourlyRate, bio, specialties, avatarUrl } = body;
 
     const newPsychologist = await prisma.psychologist.create({

@@ -1,8 +1,28 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { ChevronLeft, UserCircle, Star, Video, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { DATES, SLOTS, Psychologist } from '@/data/premiumData';
+import { axiosPost } from '@/lib/axios';
+
+// Interface defining the booking payload sent to the backend
+export interface IBookingPayload {
+  psychologistId: string;
+  scheduledAt: string;
+  sessionType: 'video' | 'chat';
+  status: string;
+}
+
+// Interface defining the response expected from the backend
+export interface IBookingResponse {
+  id: string;
+  psychologistId: string;
+  scheduledAt: string;
+  sessionType: 'video' | 'chat';
+  status: string;
+  createdAt: string;
+}
 
 interface Props {
   selectedDoc: Psychologist;
@@ -15,12 +35,33 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
   const [sessionType, setSessionType] = useState<'video' | 'chat'>('video');
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
+  // TanStack React Query Mutation configured for Axios POST to /api/bookings
+  const createMutation = useMutation({
+    mutationFn: (values: IBookingPayload) =>
+      axiosPost<IBookingPayload, IBookingResponse>('bookings', values),
+    onSuccess: () => {
+      setBookingConfirmed(true);
+      setTimeout(() => {
+        setBookingConfirmed(false);
+        onClose();
+      }, 2000);
+    },
+    onError: (error) => {
+      console.error('Failed to create booking:', error);
+      alert('Could not create booking. Make sure your backend route and database are ready.');
+    },
+  });
+
+  // Updated handler: Triggers the TanStack Mutation
   const handleBookSubmit = () => {
-    setBookingConfirmed(true);
-    setTimeout(() => {
-      setBookingConfirmed(false);
-      onClose();
-    }, 2500);
+    const payload: IBookingPayload = {
+      psychologistId: selectedDoc.id,
+      scheduledAt: `2026-09-${selectedDate} ${selectedSlot}`,
+      sessionType: sessionType,
+      status: 'PENDING',
+    };
+
+    createMutation.mutate(payload);
   };
 
   return (
@@ -157,10 +198,12 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
           <button
             type="button"
             onClick={handleBookSubmit}
-            disabled={bookingConfirmed}
-            className="w-full py-3.5 rounded-full bg-linear-to-r from-indigo-500 via-cyan-400 to-indigo-500 hover:opacity-95 text-white font-bold text-sm tracking-wide shadow-lg shadow-cyan-500/30 transition-all flex items-center justify-center gap-2"
+            disabled={bookingConfirmed || createMutation.isPending}
+            className="w-full py-3.5 rounded-full bg-linear-to-r from-indigo-500 via-cyan-400 to-indigo-500 hover:opacity-95 text-white font-bold text-sm tracking-wide shadow-lg shadow-cyan-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {bookingConfirmed ? (
+            {createMutation.isPending ? (
+              'Saving to Supabase...'
+            ) : bookingConfirmed ? (
               <>
                 <CheckCircle2 className="w-4 h-4 text-white" /> Session Reserved!
               </>
