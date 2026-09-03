@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User as UserIcon, Mail, Lock, Sparkles, UserPlus, CheckCircle2, Orbit } from 'lucide-react';
+import { User as UserIcon, Mail, Lock, UserPlus } from 'lucide-react';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/CheckBox';
@@ -8,6 +8,8 @@ import { SocialAuthButtons } from '@/components/SocialAuthButtons';
 import { PasswordStrengthMeter, calculatePasswordStrength } from '@/components/PasswordStrengthMeter';
 import { User, SignUpFormData, FormErrors } from '@/types';
 import { AUTH_STORAGE_KEY, notifyAuthChange } from '@/lib/auth';
+import { useCreateUserMutation } from '@/lib/useUser';
+import { useRouter } from 'next/navigation';
 
 interface SignUpFormProps {
   onSuccess: (user: User) => void;
@@ -20,6 +22,9 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
   onSwitchToLogin,
   isLoading: externalLoading = false,
 }) => {
+  const router = useRouter();
+  const createUserMutation = useCreateUserMutation();
+
   const [formData, setFormData] = useState<SignUpFormData>({
     name: '',
     email: '',
@@ -30,26 +35,25 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPlanetPicker, setShowPlanetPicker] = useState(false);
 
+  // تم ترك الـ Validation كاملاً بجميع شروطه كما طلبتِ
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Full name is @/componentsred';
+      newErrors.name = 'Full name is required';
     } else if (formData.name.trim().length < 2) {
       newErrors.name = 'Name must be at least 2 characters';
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email address is @/componentsred';
+      newErrors.email = 'Email address is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       newErrors.email = 'Please provide a valid email';
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is @/componentsred';
+      newErrors.password = 'Password is required';
     } else {
       const strength = calculatePasswordStrength(formData.password);
       if (strength.score < 2) {
@@ -71,55 +75,61 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    setIsSubmitting(true);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 900));
-
-      const newUser: User = {
-        id: `user-${Date.now()}`,
+    // استدعاء الـ Backend الحقيقي وإنشاء المستخدم في قاعدة البيانات
+    createUserMutation.mutate(
+      {
         name: formData.name.trim(),
         email: formData.email.toLowerCase().trim(),
-        emotionalPlanet: `${formData.selectedPlanet} Planet`,
-        createdAt: new Date().toISOString(),
-      };
+        password: formData.password.trim(),
+      },
+      {
+        onSuccess: (response) => {
+          const newUser: User = {
+            id: response.data?.id || `user-${Date.now()}`,
+            name: response.data?.name || formData.name.trim(),
+            email: response.data?.email || formData.email.toLowerCase().trim(),
+            emotionalPlanet: `${formData.selectedPlanet} Planet`,
+            createdAt: new Date().toISOString(),
+          };
 
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser));
-      notifyAuthChange();
-      onSuccess(newUser);
-    } catch {
-      setErrors({ general: 'Failed to create user account. Please try again.' });
-    } finally {
-      setIsSubmitting(false);
-    }
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(newUser));
+          notifyAuthChange();
+
+          onSuccess(newUser);
+
+          // 🚀 التوجيه التلقائي المباشر لصفحة galaxy1 عند إنشاء الحساب بنجاح
+          router.push('/galaxy1');
+        },
+        onError: (error: any) => {
+          setErrors({
+            general: error?.response?.data?.message || 'Failed to create user account. Please try again.',
+          });
+        },
+      }
+    );
   };
 
   const handleSocialSignUp = async (provider: 'google' | 'github') => {
-    setIsSubmitting(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 700));
+    const providerUser: User = {
+      id: `${provider}-${Date.now()}`,
+      name: provider === 'google' ? 'Sarah Jenkins' : 'Astro Coder',
+      email: `new.${provider}@elysium.space`,
+      emotionalPlanet: 'Calm Planet',
+      createdAt: new Date().toISOString(),
+    };
 
-      const providerUser: User = {
-        id: `${provider}-${Date.now()}`,
-        name: provider === 'google' ? 'Sarah Jenkins' : 'Astro Coder',
-        email: `new.${provider}@elysium.space`,
-        emotionalPlanet: 'Calm Planet',
-        createdAt: new Date().toISOString(),
-      };
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(providerUser));
+    notifyAuthChange();
 
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(providerUser));
-      notifyAuthChange();
-      onSuccess(providerUser);
-    } finally {
-      setIsSubmitting(false);
-    }
+    onSuccess(providerUser);
+    router.push('/galaxy1');
   };
 
-  const isLoading = isSubmitting || externalLoading;
+  const isLoading = createUserMutation.isPending || externalLoading;
 
   return (
     <div id="signup-form-wrapper" className="w-full">
@@ -204,7 +214,6 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
           leadingIcon={<Lock className="w-4 h-4" />}
           disabled={isLoading}
         />
-
 
         <div className="pt-2">
           <Checkbox

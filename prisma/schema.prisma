@@ -8,17 +8,14 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  name          String?
-  avatarUrl     String?
-  role          Role           @default(USER)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  bookings      Booking[]
-  checkIns      CheckIn[]
-  reflections   Reflection[]
-  subscriptions Subscription[]
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  avatarUrl String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model CheckIn {
@@ -28,7 +25,6 @@ model CheckIn {
   energyLevel Int?
   notes       String?
   createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -87,7 +83,6 @@ model Reflection {
   feelingNow String
   activity   Activity? @relation(fields: [activityId], references: [id])
   planet     Planet?   @relation(fields: [planetId], references: [id])
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -113,7 +108,6 @@ model Booking {
   createdAt      DateTime     @default(now())
   planet         Planet?      @relation(fields: [planetId], references: [id])
   psychologist   Psychologist @relation(fields: [psychologistId], references: [id], onDelete: Cascade)
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([psychologistId])
@@ -126,7 +120,6 @@ model Subscription {
   isActive  Boolean   @default(true)
   startDate DateTime  @default(now())
   endDate   DateTime?
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, LogIn, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/CheckBox';
@@ -7,6 +7,8 @@ import { Divider } from '@/components/Divider';
 import { SocialAuthButtons } from '../components/SocialAuthButtons';
 import { User, LoginFormData, FormErrors } from '@/types';
 import { AUTH_STORAGE_KEY, notifyAuthChange } from '@/lib/auth';
+import { useLoginUserMutation } from '@/lib/useUser';
+import { useRouter } from 'next/navigation';
 
 interface LoginFormProps {
   onSuccess: (user: User) => void;
@@ -21,6 +23,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onForgotPassword,
   isLoading: externalLoading = false,
 }) => {
+  const router = useRouter();
+  const loginMutation = useLoginUserMutation();
+
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
@@ -28,12 +33,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{
     type: 'error' | 'success' | 'info';
     text: string;
   } | null>(null);
 
+  // تم ترك الـ Validations كما هي تماماً بدون أي تغيير
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
 
@@ -53,51 +58,50 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setStatusMessage(null);
 
     if (!validate()) return;
 
-    setIsSubmitting(true);
-
-    try {
-      // Realistic smooth auth simulation
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // Derive clean name from email
-      const rawName = formData.email.split('@')[0];
-      const displayName =
-        rawName.charAt(0).toUpperCase() + rawName.slice(1).replace(/[._-]/g, ' ');
-
-      const loggedInUser: User = {
-        id: `user-${Date.now()}`,
-        name: displayName || 'Astral Traveler',
+    // استدعاء الـ API الحقيقي للتسجيل
+    loginMutation.mutate(
+      {
         email: formData.email.toLowerCase().trim(),
-        emotionalPlanet: 'Calm Universe',
-        createdAt: new Date().toISOString(),
-      };
+        password: formData.password.trim(),
+      },
+      {
+        onSuccess: (response) => {
+          const loggedInUser: User = {
+            id: response.data?.user.id || `user-${Date.now()}`,
+            name: response.data?.user.name || 'Astral Traveler',
+            email: response.data?.user.email || formData.email.toLowerCase().trim(),
+            emotionalPlanet: 'Calm Universe',
+            createdAt: new Date().toISOString(),
+          };
 
-      // Save to localStorage if rememberMe is enabled
-      if (formData.rememberMe) {
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(loggedInUser));
+          if (formData.rememberMe) {
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(loggedInUser));
+          }
+          notifyAuthChange();
+
+          setStatusMessage({
+            type: 'success',
+            text: 'Access granted. Welcome back to Elysium Galaxy!',
+          });
+
+          onSuccess(loggedInUser);
+          // التوجيه إلى صفحة المجرة
+          router.push('/galaxy1');
+        },
+        onError: (error: any) => {
+          setStatusMessage({
+            type: 'error',
+            text: error?.response?.data?.message || 'Authentication failed. Please check your credentials.',
+          });
+        },
       }
-      notifyAuthChange();
-
-      setStatusMessage({
-        type: 'success',
-        text: 'Access granted. Welcome back to Elysium Galaxy!',
-      });
-
-      onSuccess(loggedInUser);
-    } catch {
-      setStatusMessage({
-        type: 'error',
-        text: 'Authentication failed. Please check your credentials.',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    );
   };
 
   const handleFillDemo = () => {
@@ -114,31 +118,25 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   };
 
   const handleSocialLogin = async (provider: 'google' | 'github') => {
-    setIsSubmitting(true);
-    setStatusMessage(null);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
+    // محاكاة تسجيل الدخول بالخدمات الاجتماعية
+    const providerUser: User = {
+      id: `${provider}-${Date.now()}`,
+      name: provider === 'google' ? 'Alex Rivera' : 'Cosmic Developer',
+      email: `${provider.toLowerCase()}.explorer@elysium.space`,
+      emotionalPlanet: provider === 'google' ? 'Calm Planet' : 'Happiness Hub',
+      createdAt: new Date().toISOString(),
+    };
 
-      const providerUser: User = {
-        id: `${provider}-${Date.now()}`,
-        name: provider === 'google' ? 'Alex Rivera' : 'Cosmic Developer',
-        email: `${provider.toLowerCase()}.explorer@elysium.space`,
-        emotionalPlanet: provider === 'google' ? 'Calm Planet' : 'Happiness Hub',
-        createdAt: new Date().toISOString(),
-      };
-
-      if (formData.rememberMe) {
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(providerUser));
-      }
-      notifyAuthChange();
-
-      onSuccess(providerUser);
-    } finally {
-      setIsSubmitting(false);
+    if (formData.rememberMe) {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(providerUser));
     }
+    notifyAuthChange();
+
+    onSuccess(providerUser);
+    router.push('/galaxy1');
   };
 
-  const isLoading = isSubmitting || externalLoading;
+  const isLoading = loginMutation.isPending || externalLoading;
 
   return (
     <div id="login-form-wrapper" className="w-full">
