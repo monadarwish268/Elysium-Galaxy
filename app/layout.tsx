@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
 import { SpaceBackground } from "@/app/components/SpaceBack";
 import Navbar from "@/app/components/Navbar";
+import QueryProvider from "@/lib/QueryProvider"; 
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col relative bg-black text-white">
         <SpaceBackground />
         <Navbar />
-        <main className="flex-1 relative z-10 pt-4">{children}</main>
+        <main className="flex-1 relative z-10 pt-4"><QueryProvider>{children}</QueryProvider></main>//kl l children sar fo eendom acess aa function l query provider
       </body>
     </html>
     

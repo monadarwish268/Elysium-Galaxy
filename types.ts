@@ -46,3 +46,51 @@ export interface OrbitControlsConfig {
 }
 
 export type CameraPreset = 'cinematic' | 'top_down' | 'horizon' | 'side';
+
+export type AuthMode = 'login' | 'signup' | 'forgot-password';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  emotionalPlanet?: string;
+  createdAt: string;
+}
+
+export interface LoginFormData {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+}
+
+export interface SignUpFormData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  selectedPlanet: string;
+  agreeToTerms: boolean;
+}
+
+export interface FormErrors {
+  name?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  agreeToTerms?: string;
+  general?: string;
+}
+
+export interface PasswordRequirement {
+  id: string;
+  label: string;
+  met: boolean;
+}
+
+export interface PasswordStrength {
+  score: number; // 0 to 4
+  label: 'Weak' | 'Fair' | 'Good' | 'Strong';
+  color: string;
+  requirements: PasswordRequirement[];
+}
