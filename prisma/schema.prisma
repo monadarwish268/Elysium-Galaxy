@@ -85,7 +85,7 @@ model Psychologist {
   id          String    @id @default(cuid())
   name        String
   title       String
-  specialties String?
+  specialties String[]
   hourlyRate  Float
   bio         String    
   avatarUrl   String?

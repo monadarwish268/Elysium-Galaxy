@@ -35,22 +35,22 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
   const [sessionType, setSessionType] = useState<'video' | 'chat'>('video');
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
-  // TanStack React Query Mutation configured for Axios POST to /api/bookings
+  // TanStack Query Mutation requested by your doctor/instructor
   const createMutation = useMutation({
-    mutationFn: (values: IBookingPayload) =>
-      axiosPost<IBookingPayload, IBookingResponse>('bookings', values),
-    onSuccess: () => {
-      setBookingConfirmed(true);
-      setTimeout(() => {
-        setBookingConfirmed(false);
-        onClose();
-      }, 2000);
-    },
-    onError: (error) => {
-      console.error('Failed to create booking:', error);
-      alert('Could not create booking. Make sure your backend route and database are ready.');
-    },
-  });
+  mutationFn: (values: IBookingPayload) =>
+    axiosPost<IBookingPayload, IBookingResponse>('bookings', values), // Notice: 'bookings'
+  onSuccess: () => {
+    setBookingConfirmed(true);
+    setTimeout(() => {
+      setBookingConfirmed(false);
+      onClose();
+    }, 2000);
+  },
+  onError: (error) => {
+    console.error('Mutation error:', error);
+    alert('Could not create booking. Make sure your backend route and database are ready.');
+  },
+});
 
   // Updated handler: Triggers the TanStack Mutation
   const handleBookSubmit = () => {
