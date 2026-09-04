@@ -1,7 +1,7 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-datasource db {
-  provider = "postgresql"
-}
+// Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
   provider = "prisma-client"
@@ -9,88 +9,62 @@ generator client {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  name          String?
-  avatarUrl     String?
-  role          Role           @default(USER)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  // Relations
-  checkIns      CheckIn[]
-  reflections   Reflection[]
-  bookings      Booking[]
-  subscriptions Subscription[]
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  avatarUrl String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model CheckIn {
   id          String   @id @default(cuid())
   userId      String
-  mood        String   // e.g., "Anxious", "Calm", "Stress"
-  energyLevel Int?     // Scale 1-10
-  notes       String?  
+  mood        String   // e.g., "Anxious", "Calm", 
+  energyLevel Int      // Scale 1-10
+  notes       String?  @db.Text
   createdAt   DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model Reflection {
+  id        String   @id @default(cuid())
+  userId    String
+  planetId  String?
+  content   String   @db.Text
+  tags      String[] // Array of categories/tags
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planet    Planet?  @relation(fields: [planetId], references: [id], onDelete: SetNull)
 
   @@index([userId])
 }
 
 model Planet {
   id          String       @id @default(cuid())
-  slug        String       @unique // e.g., "calm-oasis", "stress"
+  slug        String       @unique // e.g., "calm-oasis"
   name        String
-  description String       
+  description String       @db.Text
   themeColor  String?
 
-  activities  Activity[]
   reflections Reflection[]
   bookings    Booking[]
-}
-
-model Activity {
-  id          String       @id @default(cuid())
-  planetId    String
-  title       String       // e.g., "Deep Breathing Exercise"
-  description String       
-  type        String       // e.g., "BREATHING", "JOURNALING"
-  durationMin Int?
-
-  planet      Planet       @relation(fields: [planetId], references: [id], onDelete: Cascade)
-  reflections Reflection[]
-
-  createdAt   DateTime     @default(now())
-}
-
-model Reflection {
-  id          String    @id @default(cuid())
-  userId      String
-  planetId    String?
-  activityId  String?
-  feelingNow  String    // Answer to "How do you feel now?"
-  content     String?   
-  tags        String?
-
-  createdAt   DateTime  @default(now())
-
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  planet      Planet?   @relation(fields: [planetId], references: [id], onDelete: SetNull)
-  activity    Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
 }
 
 model Psychologist {
-  id          String    @id @default(cuid())
-  name        String
-  title       String
-  specialties String[]
-  hourlyRate  Float
-  bio         String    
-  avatarUrl   String?
+  id           String    @id @default(cuid())
+  name         String
+  title        String
+  specialties  String[]  // Array of focus areas
+  hourlyRate   Float
+  bio          String    @db.Text
+  avatarUrl    String?
 
-  bookings    Booking[]
+  bookings     Booking[]
 }
 
 model Booking {
@@ -101,10 +75,8 @@ model Booking {
   scheduledAt    DateTime
   status         String       @default("PENDING")
   createdAt      DateTime     @default(now())
-
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planet         Planet?      @relation(fields: [planetId], references: [id])
   psychologist   Psychologist @relation(fields: [psychologistId], references: [id], onDelete: Cascade)
-  planet         Planet?      @relation(fields: [planetId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([psychologistId])
@@ -118,7 +90,7 @@ model Subscription {
   startDate DateTime  @default(now())
   endDate   DateTime?
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -126,4 +98,22 @@ model Subscription {
 enum Role {
   USER
   ADMIN
+}
+
+enum PlanetEmotionType {
+  stress
+  happiness
+  sadness
+  calm
+  selfLove
+  custom
+}
+
+enum PlanetType {
+  terrestrial
+  volcanic
+  gas_giant
+  ringed_giant
+  ice_giant
+  custom
 }
