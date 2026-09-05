@@ -2,23 +2,20 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Menu, Sparkles, X } from "lucide-react";
-import { AUTH_CHANGE_EVENT, AUTH_STORAGE_KEY, notifyAuthChange } from "@/lib/auth";
+import { AUTH_CHANGE_EVENT, AUTH_STORAGE_KEY } from "@/lib/auth";
 
 export const appname = {
   name: "Elysium Galaxy",
 };
 
 export const navbarlinks = [
-  { label: "Welcome", href: "/" }, // يُفضل التوجيه للـ Root /
+  { label: "Welcome", href: "/" },
   { label: "Galaxy", href: "/galaxy1" },
   { label: "Premium", href: "/premium" },
-  // { label: "Sign Up", href: "/login" },
 ];
 
 export default function Navbar() {
-  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -38,14 +35,6 @@ export default function Navbar() {
   }, []);
 
   const closeMenu = () => setIsMenuOpen(false);
-
-  const handleLogout = () => {
-    localStorage.removeItem(AUTH_STORAGE_KEY);
-    setIsAuthenticated(false);
-    notifyAuthChange();
-    closeMenu();
-    router.push("/");
-  };
 
   return (
     <header className="relative z-50 overflow-hidden font-['Poppins']">
@@ -96,25 +85,16 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {isAuthenticated ? (
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="shrink-0 rounded-lg px-2 py-3 text-sm transition-colors duration-200 hover:bg-white/10 hover:text-white sm:px-0 sm:py-0 sm:text-lg sm:hover:bg-transparent"
-              >
-                Log Out
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                onClick={closeMenu}
-                className="shrink-0 rounded-lg px-2 py-3 text-sm transition-colors duration-200 hover:bg-white/10 hover:text-white sm:px-0 sm:py-0 sm:text-lg sm:hover:bg-transparent"
-              >
-                Sign Up
-              </Link>
-            )}
+            <Link
+              href={isAuthenticated ? "/UserSetting" : "/login"}
+              onClick={closeMenu}
+              className="shrink-0 rounded-lg px-2 py-3 text-sm transition-colors duration-200 hover:bg-white/10 hover:text-white sm:px-0 sm:py-0 sm:text-lg sm:hover:bg-transparent"
+            >
+              {isAuthenticated ? "Profile" : "Sign In"}
+            </Link>
           </div>
         </nav>
+
       </div>
     </header>
   );

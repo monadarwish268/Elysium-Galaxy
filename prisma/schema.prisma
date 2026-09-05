@@ -61,28 +61,26 @@ model Planet {
 }
 
 model Activity {
-  id          String       @id @default(cuid())
+  id          String   @id @default(cuid())
   planetId    String
   title       String
   description String
-  type        String
-  durationMin Int?
-  createdAt   DateTime     @default(now())
-  planet      Planet       @relation(fields: [planetId], references: [id], onDelete: Cascade)
-  reflections Reflection[]
+  type        String   @default("GENERAL")
+  duration    String
+  createdAt   DateTime @default(now())
+  planet      Planet   @relation(fields: [planetId], references: [id], onDelete: Cascade)
 }
 
 model Reflection {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   userId     String
   planetId   String?
   content    String?
   tags       String?
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime @default(now())
   activityId String?
   feelingNow String
-  activity   Activity? @relation(fields: [activityId], references: [id])
-  planet     Planet?   @relation(fields: [planetId], references: [id])
+  planet     Planet?  @relation(fields: [planetId], references: [id])
 
   @@index([userId])
 }
@@ -91,10 +89,11 @@ model Psychologist {
   id          String    @id @default(cuid())
   name        String
   title       String
-  hourlyRate  Float
   bio         String
   avatarUrl   String?
   specialties String[]
+  endTime     String    @default("17:00")
+  startTime   String    @default("09:00")
   bookings    Booking[]
 }
 

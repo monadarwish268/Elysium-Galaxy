@@ -1,30 +1,12 @@
-// import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// import { axiosGet, axiosPost, axiosDelete } from './axios';
-// import { IUser, CreateUserDTO } from '@/interfaces/UserInterface';
-
-// export const useGetUsersQuery = () => {
-//   return useQuery({
-//     queryKey: ['users'],
-//     queryFn: () => axiosGet<IUser[]>('/users'),
-//   });
-// };
-
-// export const useCreateUserMutation = () => {
-//   const queryClient = useQueryClient();
-//   return useMutation({
-//     mutationFn: (newUser: CreateUserDTO) => axiosPost<CreateUserDTO, IUser>('/users', newUser),
-//     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
-//   });
-// };
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { axiosGet, axiosPost, axiosPut, axiosDelete } from '@/lib/axios';
-import { 
-  IUser, 
-  CreateUserDTO, 
-  UpdateUserDTO, 
-  LoginUserDTO, 
-  LoginResponseDTO 
+import {
+  IUser,
+  CreateUserDTO,
+  UpdateUserDTO,
+  LoginUserDTO,
+  LoginResponseDTO,
+  ApiResponse
 } from '@/interfaces/UserInterface';
 
 // 1. Hook لجلب جميع المستخدمين
@@ -55,7 +37,6 @@ export const useLoginUserMutation = () => {
   });
 };
 
-// 4. Hook لتعديل بيانات مستخدم
 export const useUpdateUserMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -67,12 +48,12 @@ export const useUpdateUserMutation = () => {
   });
 };
 
-// 5. Hook لحذف مستخدم
+// 2. Hook للحذف (DELETE)
 export const useDeleteUserMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (userId: string) =>
-      axiosDelete<{ message: string }>(`/users/${userId}`),
+      axiosDelete<ApiResponse<null>>(`/users/${userId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
