@@ -6,10 +6,11 @@ const idSchema = z.string().trim().min(1, 'Subscription id is required');
 const dateSchema = z.coerce.date({ error: 'End date must be a valid date' });
 
 const createSubscriptionSchema = z.object({
-  userId: z.string().trim().min(1, 'User id is required').optional(),
+  userId: z.string().trim().min(1, 'User id is required'),
   planType: z.string().trim().min(1, 'Plan type is required').default('UPLIFT_BEAM'),
   message: z.string().trim().min(1, 'Message is required').max(250, 'Message cannot exceed 250 characters'),
   amount: z.literal(1).default(1),
+  paymentStatus: z.enum(['PENDING', 'PAID']).default('PENDING'),
   endDate: dateSchema.nullable().optional(),
 });
 
@@ -48,27 +49,30 @@ export async function POST(request: Request) {
     const parsed = createSubscriptionSchema.safeParse(body);
     if (!parsed.success) return validationError(parsed.error);
 
-    const { userId, planType, message, endDate } = parsed.data;
+    const { userId, message, endDate, paymentStatus } = parsed.data;
 
-    let user = userId ? await prisma.user.findUnique({ where: { id: userId } }) : await prisma.user.findFirst();
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email: `sub_${Date.now()}@elysium.com`,
-          name: 'Sub User',
-          password: `sub_${Date.now()}`,
-        },
-      });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
+    const booking = await prisma.booking.findFirst({
+      where: { userId: user.id, status: { not: 'CANCELLED' } },
+      select: { id: true },
+    });
+    if (!booking) {
+      return NextResponse.json(
+        { error: 'You must complete a booking before sending a message', code: 'BOOKING_REQUIRED' },
+        { status: 403 },
+      );
     }
 
     const subscription = await prisma.subscription.create({
       data: {
         userId: user.id,
-        planType,
+        planType: 'PREMIUM_ORBIT',
         message,
         amount: 1,
-        paymentStatus: 'PAID',
-        paidAt: new Date(),
+        paymentStatus,
+        paidAt: paymentStatus === 'PAID' ? new Date() : null,
         isActive: true,
         endDate: endDate ?? null,
       },
@@ -76,7 +80,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ data: subscription, status: 201 });
   } catch (error) {
     console.error('POST Subscription error:', error);
-    return NextResponse.json({ error: 'Failed to create subscription' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to create subscription', details: error instanceof Error ? error.message : 'Unknown database error' },
+      { status: 500 },
+    );
   }
 }
 

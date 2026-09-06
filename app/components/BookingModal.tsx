@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { ChevronLeft, UserCircle, Star, Video, MessageSquare, CheckCircle2, Clock } from 'lucide-react';
 import { Psychologist } from '@/data/premiumData';
-import { axiosPost } from '@/lib/axios';
+import { ApiError, axiosGet, axiosPost } from '@/lib/axios';
 
 // Interface defining the booking payload sent to the backend
 export interface IBookingPayload {
+  userId?: string;
   psychologistId: string;
   scheduledAt: string;
   sessionType: 'video' | 'chat';
@@ -30,10 +31,10 @@ interface Props {
 }
 
 const createBookingDates = () => {
-  const dates: { day: string; date: string; value: string }[] = [];
+  const dates: { day: string; date: string; month: string; value: string }[] = [];
   const currentDate = new Date();
 
-  for (let offset = 0; dates.length < 6 && offset < 14; offset += 1) {
+  for (let offset = 0; dates.length < 66 && offset < 92; offset += 1) {
     const date = new Date(currentDate);
     date.setDate(currentDate.getDate() + offset);
     const day = date.getDay();
@@ -43,6 +44,7 @@ const createBookingDates = () => {
       dates.push({
         day: date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
         date: String(date.getDate()).padStart(2, '0'),
+        month: date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
         value,
       });
     }
@@ -75,8 +77,32 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
   const [selectedDate, setSelectedDate] = useState(dates[0]?.value ?? '');
   const [selectedSlot, setSelectedSlot] = useState('09:00');
   const [showSlots, setShowSlots] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [sessionType, setSessionType] = useState<'video' | 'chat'>('video');
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
+
+  useEffect(() => {
+    if (!selectedDate) return;
+
+    const loadBookedSlots = async () => {
+      setAvailabilityError(null);
+      try {
+        const response = await axiosGet<{ scheduledAt: string }[]>(
+          `/bookings?psychologistId=${encodeURIComponent(selectedDoc.id)}&date=${selectedDate}`,
+        );
+        setBookedSlots((response.data ?? []).map((booking) => {
+          const time = new Date(booking.scheduledAt).toISOString();
+          return time.slice(11, 16);
+        }));
+      } catch (error) {
+        setAvailabilityError(error instanceof ApiError ? error.message : 'Could not load availability.');
+        setBookedSlots([]);
+      }
+    };
+
+    void loadBookedSlots();
+  }, [selectedDate, selectedDoc.id]);
 
   // TanStack Query Mutation requested by your doctor/instructor
   const createMutation = useMutation({
@@ -91,16 +117,19 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
   },
   onError: (error) => {
     console.error('Mutation error:', error);
-    const message = error instanceof Error ? error.message : 'Could not create booking.';
+    const message = error instanceof ApiError ? error.message : 'Could not create booking.';
     alert(message);
   },
 });
 
   // Updated handler: Triggers the TanStack Mutation
   const handleBookSubmit = () => {
+    const storedUser = localStorage.getItem('elysium_user') || localStorage.getItem('user');
+    const user = storedUser ? JSON.parse(storedUser) as { id?: string } : undefined;
     const payload: IBookingPayload = {
+      ...(user?.id ? { userId: user.id } : {}),
       psychologistId: selectedDoc.id,
-      scheduledAt: `${selectedDate}T${selectedSlot}:00`,
+      scheduledAt: `${selectedDate}T${selectedSlot}:00.000Z`,
       sessionType: sessionType,
       status: 'PENDING',
     };
@@ -110,7 +139,7 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#05091e] border border-slate-800 rounded-3xl p-6 relative space-y-6 shadow-2xl text-white">
+      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-[#05091e] border border-slate-800 rounded-3xl p-6 relative space-y-6 shadow-2xl text-white">
         
         {/* Navigation */}
         <div className="flex items-center justify-between">
@@ -154,14 +183,14 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
         {/* Select Date */}
         <div className="space-y-2.5">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Select Date</label>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 max-h-64 overflow-y-auto pr-1">
             {dates.map((d) => {
               const isSelected = selectedDate === d.value;
               return (
                 <button
-                  key={d.date}
+                  key={d.value}
                   type="button"
-                  onClick={() => setSelectedDate(d.date)}
+                  onClick={() => setSelectedDate(d.value)}
                   className={`py-3 rounded-2xl border text-center transition-all ${
                     isSelected
                       ? 'bg-[#152a5c] border-cyan-400 text-cyan-300 shadow-md shadow-cyan-500/20'
@@ -169,6 +198,7 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
                   }`}
                 >
                   <div className="text-[10px] font-semibold text-slate-400">{d.day}</div>
+                  <div className="text-[9px] font-semibold text-cyan-400">{d.month}</div>
                   <div className="text-sm font-bold text-white mt-0.5">{d.date}</div>
                 </button>
               );
@@ -193,26 +223,33 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
             <div className="grid grid-cols-3 gap-2 rounded-xl border border-slate-800 bg-[#0b122c] p-2">
               {slots.map((slot) => {
                 const isSelected = selectedSlot === slot.value;
+                const isBooked = bookedSlots.includes(slot.value);
                 return (
                   <button
                     key={slot.value}
                     type="button"
+                    disabled={isBooked}
                     onClick={() => {
+                      if (isBooked) return;
                       setSelectedSlot(slot.value);
                       setShowSlots(false);
                     }}
                     className={`rounded-lg border py-2.5 text-xs font-bold transition-all ${
-                      isSelected
+                      isBooked
+                        ? 'cursor-not-allowed border-red-900/60 bg-red-950/30 text-red-300'
+                        : isSelected
                         ? 'border-indigo-500 bg-[#13204c] text-indigo-200 shadow-md shadow-indigo-500/20'
                         : 'border-slate-800 bg-[#0b122c] text-slate-300 hover:border-slate-700'
                     }`}
                   >
-                    {slot.label}
+                    {isBooked ? `${slot.label} - Booked` : slot.label}
                   </button>
                 );
               })}
             </div>
           )}
+
+          {availabilityError && <p className="text-xs text-red-400">{availabilityError}</p>}
 
           {!showSlots && (
             <p className="text-[11px] text-slate-500">Choose a time from 9:00 AM to 3:00 PM.</p>

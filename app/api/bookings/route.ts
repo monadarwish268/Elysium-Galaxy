@@ -8,6 +8,7 @@ const createBookingSchema = z.object({
   userId: z.string().trim().min(1, 'User id is required').optional(),
   psychologistId: z.string().trim().min(1, 'Psychologist id is required'),
   scheduledAt: z.coerce.date({ error: 'A valid booking date and time is required' }),
+  sessionType: z.enum(['video', 'chat']).default('video'),
   status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']).default('PENDING'),
 });
 
@@ -28,8 +29,34 @@ function validationError(error: z.ZodError) {
 }
 
 // READ: GET /api/bookings
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const psychologistId = searchParams.get('psychologistId');
+    const date = searchParams.get('date');
+
+    if (psychologistId || date) {
+      const parsed = z.object({
+        psychologistId: z.string().trim().min(1, 'Psychologist id is required'),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must use YYYY-MM-DD'),
+      }).safeParse({ psychologistId, date });
+      if (!parsed.success) return validationError(parsed.error);
+
+      const start = new Date(`${parsed.data.date}T00:00:00.000Z`);
+      const end = new Date(start);
+      end.setUTCDate(end.getUTCDate() + 1);
+      const bookings = await prisma.booking.findMany({
+        where: {
+          psychologistId: parsed.data.psychologistId,
+          scheduledAt: { gte: start, lt: end },
+          status: { not: 'CANCELLED' },
+        },
+        select: { scheduledAt: true },
+        orderBy: { scheduledAt: 'asc' },
+      });
+      return NextResponse.json({ data: bookings, status: 200, message: 'Booked slots retrieved' });
+    }
+
     const bookings = await prisma.booking.findMany({
       orderBy: { scheduledAt: 'asc' },
       include: { psychologist: true },
@@ -77,6 +104,20 @@ export async function POST(request: Request) {
       });
     }
 
+    const conflictingBooking = await prisma.booking.findFirst({
+      where: {
+        psychologistId: psychologist.id,
+        scheduledAt,
+        status: { not: 'CANCELLED' },
+      },
+    });
+    if (conflictingBooking) {
+      return NextResponse.json(
+        { error: 'This time slot is already booked', code: 'SLOT_BOOKED' },
+        { status: 409 },
+      );
+    }
+
     const newBooking = await prisma.booking.create({
       data: {
         userId: user.id,
@@ -88,9 +129,18 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ data: newBooking, status: 201, message: 'Booking created' }, { status: 201 });
-  } catch (error: unknown) { // Replaced 'any' with 'unknown' for clean ESLint
+  } catch (error: unknown) {
     console.error('POST Booking error:', error);
-    return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'This time slot is already booked', code: 'SLOT_BOOKED' },
+        { status: 409 },
+      );
+    }
+    return NextResponse.json(
+      { error: 'Failed to create booking', details: error instanceof Error ? error.message : 'Unknown database error' },
+      { status: 500 },
+    );
   }
 }
 
@@ -104,6 +154,23 @@ export async function PUT(request: Request) {
     const { id, status, scheduledAt } = parsed.data;
     const existing = await prisma.booking.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+
+    if (scheduledAt) {
+      const conflict = await prisma.booking.findFirst({
+        where: {
+          id: { not: id },
+          psychologistId: existing.psychologistId,
+          scheduledAt,
+          status: { not: 'CANCELLED' },
+        },
+      });
+      if (conflict) {
+        return NextResponse.json(
+          { error: 'This time slot is already booked', code: 'SLOT_BOOKED' },
+          { status: 409 },
+        );
+      }
+    }
 
     const updated = await prisma.booking.update({
       where: { id },
