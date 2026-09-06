@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { ChevronLeft, UserCircle, Star, Video, MessageSquare, CheckCircle2 } from 'lucide-react';
-import { DATES, SLOTS, Psychologist } from '@/data/premiumData';
+import { ChevronLeft, UserCircle, Star, Video, MessageSquare, CheckCircle2, Clock } from 'lucide-react';
+import { Psychologist } from '@/data/premiumData';
 import { axiosPost } from '@/lib/axios';
 
 // Interface defining the booking payload sent to the backend
@@ -29,9 +29,52 @@ interface Props {
   onClose: () => void;
 }
 
+const createBookingDates = () => {
+  const dates: { day: string; date: string; value: string }[] = [];
+  const currentDate = new Date();
+
+  for (let offset = 0; dates.length < 6 && offset < 14; offset += 1) {
+    const date = new Date(currentDate);
+    date.setDate(currentDate.getDate() + offset);
+    const day = date.getDay();
+
+    if (day !== 0) {
+      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      dates.push({
+        day: date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
+        date: String(date.getDate()).padStart(2, '0'),
+        value,
+      });
+    }
+  }
+
+  return dates;
+};
+
+const createTimeSlots = () => {
+  const slots: { label: string; value: string }[] = [];
+
+  for (let minutes = 9 * 60; minutes <= 15 * 60; minutes += 30) {
+    const hour = Math.floor(minutes / 60);
+    const minute = minutes % 60;
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    const value = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+    slots.push({
+      value,
+      label: `${displayHour}:${String(minute).padStart(2, '0')} ${period}`,
+    });
+  }
+
+  return slots;
+};
+
 export default function BookingModal({ selectedDoc, onClose }: Props) {
-  const [selectedDate, setSelectedDate] = useState('15');
-  const [selectedSlot, setSelectedSlot] = useState('10:30 AM');
+  const dates = createBookingDates();
+  const slots = createTimeSlots();
+  const [selectedDate, setSelectedDate] = useState(dates[0]?.value ?? '');
+  const [selectedSlot, setSelectedSlot] = useState('09:00');
+  const [showSlots, setShowSlots] = useState(false);
   const [sessionType, setSessionType] = useState<'video' | 'chat'>('video');
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
@@ -48,7 +91,8 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
   },
   onError: (error) => {
     console.error('Mutation error:', error);
-    alert('Could not create booking. Make sure your backend route and database are ready.');
+    const message = error instanceof Error ? error.message : 'Could not create booking.';
+    alert(message);
   },
 });
 
@@ -56,7 +100,7 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
   const handleBookSubmit = () => {
     const payload: IBookingPayload = {
       psychologistId: selectedDoc.id,
-      scheduledAt: `2026-09-${selectedDate} ${selectedSlot}`,
+      scheduledAt: `${selectedDate}T${selectedSlot}:00`,
       sessionType: sessionType,
       status: 'PENDING',
     };
@@ -110,9 +154,9 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
         {/* Select Date */}
         <div className="space-y-2.5">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Select Date</label>
-          <div className="grid grid-cols-5 gap-2">
-            {DATES.map((d) => {
-              const isSelected = selectedDate === d.date;
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            {dates.map((d) => {
+              const isSelected = selectedDate === d.value;
               return (
                 <button
                   key={d.date}
@@ -134,26 +178,45 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
 
         {/* Available Slots */}
         <div className="space-y-2.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-300">Available Slots</label>
-          <div className="space-y-2">
-            {SLOTS.map((slot) => {
-              const isSelected = selectedSlot === slot;
-              return (
-                <button
-                  key={slot}
-                  type="button"
-                  onClick={() => setSelectedSlot(slot)}
-                  className={`w-full py-3 rounded-xl border text-xs font-bold tracking-wider transition-all ${
-                    isSelected
-                      ? 'bg-[#13204c] border-indigo-500 text-indigo-200 shadow-md shadow-indigo-500/20'
-                      : 'bg-[#0b122c] border-slate-800 text-slate-300 hover:border-slate-700'
-                  }`}
-                >
-                  {slot}
-                </button>
-              );
-            })}
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowSlots((isOpen) => !isOpen)}
+            className="w-full flex items-center justify-between rounded-xl border border-slate-800 bg-[#0b122c] px-4 py-3 text-left transition-colors hover:border-cyan-500/60"
+          >
+            <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
+              <Clock className="h-4 w-4 text-cyan-400" /> Available slots
+            </span>
+            <span className="text-xs font-semibold text-cyan-300">{selectedSlot}</span>
+          </button>
+
+          {showSlots && (
+            <div className="grid grid-cols-3 gap-2 rounded-xl border border-slate-800 bg-[#0b122c] p-2">
+              {slots.map((slot) => {
+                const isSelected = selectedSlot === slot.value;
+                return (
+                  <button
+                    key={slot.value}
+                    type="button"
+                    onClick={() => {
+                      setSelectedSlot(slot.value);
+                      setShowSlots(false);
+                    }}
+                    className={`rounded-lg border py-2.5 text-xs font-bold transition-all ${
+                      isSelected
+                        ? 'border-indigo-500 bg-[#13204c] text-indigo-200 shadow-md shadow-indigo-500/20'
+                        : 'border-slate-800 bg-[#0b122c] text-slate-300 hover:border-slate-700'
+                    }`}
+                  >
+                    {slot.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {!showSlots && (
+            <p className="text-[11px] text-slate-500">Choose a time from 9:00 AM to 3:00 PM.</p>
+          )}
         </div>
 
         {/* Session Type */}

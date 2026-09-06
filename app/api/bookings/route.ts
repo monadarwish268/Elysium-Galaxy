@@ -1,29 +1,62 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
 
-// READ: GET /api/booking
+const bookingIdSchema = z.string().trim().min(1, 'Booking id is required');
+
+const createBookingSchema = z.object({
+  userId: z.string().trim().min(1, 'User id is required').optional(),
+  psychologistId: z.string().trim().min(1, 'Psychologist id is required'),
+  scheduledAt: z.coerce.date({ error: 'A valid booking date and time is required' }),
+  status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']).default('PENDING'),
+});
+
+const updateBookingSchema = z.object({
+  id: bookingIdSchema,
+  scheduledAt: z.coerce.date({ error: 'A valid booking date and time is required' }).optional(),
+  status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']).optional(),
+}).refine(
+  ({ scheduledAt, status }) => scheduledAt !== undefined || status !== undefined,
+  { message: 'Provide a status or scheduledAt value to update' },
+);
+
+function validationError(error: z.ZodError) {
+  return NextResponse.json(
+    { error: 'Validation failed', details: error.flatten().fieldErrors },
+    { status: 400 },
+  );
+}
+
+// READ: GET /api/bookings
 export async function GET() {
   try {
     const bookings = await prisma.booking.findMany({
-      include: { user: true, psychologist: true },
+      orderBy: { scheduledAt: 'asc' },
+      include: { psychologist: true },
     });
     return NextResponse.json({ data: bookings, status: 200, message: 'Success' });
   } catch (error) {
-    console.error('GET Booking error:', error); // Fixes unused variable
+    console.error('GET Booking error:', error);
     return NextResponse.json({ error: 'Failed to fetch bookings', status: 500 }, { status: 500 });
   }
 }
 
-// CREATE: POST /api/booking
+// CREATE: POST /api/bookings
 export async function POST(request: Request) {
   try {
-    const body = await request.json().catch(() => ({}));
-    const { userId, psychologistId, scheduledAt, status } = body;
+    const body = await request.json().catch(() => null);
+    const parsed = createBookingSchema.safeParse(body);
+    if (!parsed.success) return validationError(parsed.error);
 
+    const { userId, psychologistId, scheduledAt, status } = parsed.data;
     let user = userId ? await prisma.user.findUnique({ where: { id: userId } }) : await prisma.user.findFirst();
     if (!user) {
       user = await prisma.user.create({
-        data: { email: `demo_${Date.now()}@elysium.com`, name: 'Demo User' },
+        data: {
+          email: `demo_${Date.now()}@elysium.com`,
+          name: 'Demo User',
+          password: `demo_${Date.now()}`,
+        },
       });
     }
 
@@ -37,7 +70,8 @@ export async function POST(request: Request) {
           name: 'Dr. Sarah Chen',
           title: 'Clinical Psychologist',
           specialties: ['Stress', 'Burnout'], 
-          hourlyRate: 45,
+          startTime: '09:00',
+          endTime: '17:00',
           bio: 'Clinical specialist.',
         },
       });
@@ -47,51 +81,59 @@ export async function POST(request: Request) {
       data: {
         userId: user.id,
         psychologistId: psychologist.id,
-        scheduledAt: scheduledAt ? new Date(scheduledAt) : new Date(),
-        status: status || 'PENDING',
+        scheduledAt,
+        status,
       },
-      include: { psychologist: true, user: true },
+      include: { psychologist: true },
     });
 
     return NextResponse.json({ data: newBooking, status: 201, message: 'Booking created' }, { status: 201 });
   } catch (error: unknown) { // Replaced 'any' with 'unknown' for clean ESLint
-    console.error('POST Booking error:', error); // Fixes unused variable
-    const msg = error instanceof Error ? error.message : 'Failed';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('POST Booking error:', error);
+    return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });
   }
 }
 
-// UPDATE: PUT /api/booking
+// UPDATE: PUT /api/bookings
 export async function PUT(request: Request) {
   try {
-    const { id, status, scheduledAt } = await request.json();
-    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+    const body = await request.json().catch(() => null);
+    const parsed = updateBookingSchema.safeParse(body);
+    if (!parsed.success) return validationError(parsed.error);
+
+    const { id, status, scheduledAt } = parsed.data;
+    const existing = await prisma.booking.findUnique({ where: { id } });
+    if (!existing) return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
 
     const updated = await prisma.booking.update({
       where: { id },
       data: {
         ...(status && { status }),
-        ...(scheduledAt && { scheduledAt: new Date(scheduledAt) }),
+        ...(scheduledAt && { scheduledAt }),
       },
+      include: { psychologist: true },
     });
     return NextResponse.json({ data: updated, status: 200 });
   } catch (error) {
-    console.error('PUT Booking error:', error); // Fixes unused variable
+    console.error('PUT Booking error:', error);
     return NextResponse.json({ error: 'Failed to update booking' }, { status: 500 });
   }
 }
 
-// DELETE: DELETE /api/booking
+// DELETE: DELETE /api/bookings?id=...
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+    const parsed = bookingIdSchema.safeParse(searchParams.get('id'));
+    if (!parsed.success) return validationError(parsed.error);
 
-    await prisma.booking.delete({ where: { id } });
+    const existing = await prisma.booking.findUnique({ where: { id: parsed.data } });
+    if (!existing) return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+
+    await prisma.booking.delete({ where: { id: parsed.data } });
     return NextResponse.json({ status: 200, message: 'Booking deleted' });
   } catch (error) {
-    console.error('DELETE Booking error:', error); // Fixes unused variable
+    console.error('DELETE Booking error:', error);
     return NextResponse.json({ error: 'Failed to delete booking' }, { status: 500 });
   }
 }

@@ -2,36 +2,73 @@
 
 import React, { useState } from 'react';
 import { Heart, Send, Sparkles, CheckCircle2, CreditCard, Lock, X } from 'lucide-react';
+import { axiosPost, ApiError } from '@/lib/axios';
+
+interface SubscriptionRecord {
+  id: string;
+  userId: string;
+  planType: string;
+  message: string;
+  amount: number;
+  paymentStatus: string;
+  paidAt: string;
+  isActive: boolean;
+  startDate: string;
+  endDate: string | null;
+}
 
 export default function UpliftTab() {
   const [message, setMessage] = useState('');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Triggered when clicking "Beam Message"
   const handleInitiateSend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    setError(null);
+    if (!message.trim()) {
+      setError('Please write a message before sending.');
+      return;
+    }
     setShowPaymentModal(true);
   };
 
   // Triggered after confirming the payment
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
     setIsProcessing(true);
+    setError(null);
 
-    // Simulate payment gateway delay
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      const storedUser = localStorage.getItem('elysium_user') || localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) as { id?: string } : undefined;
+
+      await axiosPost<
+        { userId?: string; planType: string; message: string; amount: 1 },
+        SubscriptionRecord
+      >('subscriptions', {
+        userId: user?.id,
+        planType: 'UPLIFT_BEAM',
+        message: message.trim(),
+        amount: 1,
+      });
+
       setShowPaymentModal(false);
       setIsSent(true);
-
-      // Reset form state after success message
-      setTimeout(() => {
-        setMessage('');
-        setIsSent(false);
-      }, 3000);
-    }, 1500);
+      setMessage('');
+      setTimeout(() => setIsSent(false), 3000);
+    } catch (paymentError) {
+      const details = paymentError instanceof ApiError && paymentError.data && typeof paymentError.data === 'object'
+        ? paymentError.data as { errors?: Record<string, string[]> }
+        : undefined;
+      const validationMessage = details?.errors
+        ? Object.values(details.errors).flat().join(' ')
+        : paymentError instanceof Error ? paymentError.message : 'Could not save your message.';
+      setError(validationMessage);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -59,6 +96,7 @@ export default function UpliftTab() {
             maxLength={250}
             disabled={isSent}
           />
+          {error && <p className="text-xs text-red-400">{error}</p>}
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500">
               {250 - message.length} characters left

@@ -9,6 +9,8 @@ export interface Psychologist {
   availability: string;
   price: number;
   avatar: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 export const PSYCHOLOGISTS: Psychologist[] = [

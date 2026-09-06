@@ -9,6 +9,7 @@ import { User, LoginFormData, FormErrors } from '@/types';
 import { AUTH_STORAGE_KEY, notifyAuthChange } from '@/lib/auth';
 import { useLoginUserMutation } from '@/lib/useUser';
 import { useRouter } from 'next/navigation';
+import { AxiosError } from 'axios';
 
 interface LoginFormProps {
   onSuccess: (user: User) => void;
@@ -83,6 +84,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           if (formData.rememberMe) {
             localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(loggedInUser));
           }
+          localStorage.setItem('user', JSON.stringify(loggedInUser));
           notifyAuthChange();
 
           setStatusMessage({
@@ -94,12 +96,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           // التوجيه إلى صفحة المجرة
           router.push('/galaxy1');
         },
-        onError: (error: any) => {
-          setStatusMessage({
-            type: 'error',
-            text: error?.response?.data?.message || 'Authentication failed. Please check your credentials.',
-          });
-        },
+        onError: (error: unknown) => {
+         const err = error as { response?: { data?: { message?: string } } };
+        setStatusMessage({
+        type: 'error',
+        text: err?.response?.data?.message || 'Authentication failed. Please check your credentials.',
+       });
+      },
+      
       }
     );
   };

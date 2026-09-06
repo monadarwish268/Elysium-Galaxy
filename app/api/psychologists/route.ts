@@ -14,13 +14,14 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, title, hourlyRate, bio, specialties, avatarUrl } = body;
+    const { name, title, startTime, endTime, bio, specialties, avatarUrl } = body;
 
     const newPsychologist = await prisma.psychologist.create({
       data: {
         name: name || 'Dr. New Expert',
         title: title || 'Psychologist',
-        hourlyRate: hourlyRate ? parseFloat(hourlyRate) : 50,
+        startTime: startTime || '09:00',
+        endTime: endTime || '17:00',
         bio: bio || 'Therapy specialist',
         specialties: Array.isArray(specialties) ? specialties.join(', ') : specialties || 'General',
         avatarUrl,
@@ -35,10 +36,10 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { id, name, title, hourlyRate, bio } = await request.json();
+    const { id, name, title, startTime, endTime, bio } = await request.json();
     const updated = await prisma.psychologist.update({
       where: { id },
-      data: { name, title, bio, ...(hourlyRate && { hourlyRate: parseFloat(hourlyRate) }) },
+      data: { name, title, bio, startTime, endTime },
     });
     return NextResponse.json({ data: updated, status: 200 });
   } catch (error) {
