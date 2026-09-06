@@ -1,14 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Psychologist } from '../../data/premiumData';
 import UpliftTab from '@/app/components/UpliftTab';
 import PsychologistList from '@/app/components/PsychologistList';
-import BookingModal from '@/app/components/BookingModal';
 
 export default function PremiumPage() {
   const [activeTab, setActiveTab] = useState<'booking' | 'uplift'>('uplift');
-  const [selectedDoc, setSelectedDoc] = useState<Psychologist | null>(null);
 
   return (
     <div className="min-h-screen bg-transparent text-white p-6 md:p-12 pt-24 font-sans relative overflow-hidden">
@@ -57,18 +54,10 @@ export default function PremiumPage() {
         {activeTab === 'uplift' ? (
           <UpliftTab />
         ) : (
-          <PsychologistList onSelectDoc={(doc) => setSelectedDoc(doc)} />
+          <PsychologistList />
         )}
 
       </div>
-
-      {/* Booking Modal */}
-      {selectedDoc && (
-        <BookingModal 
-          selectedDoc={selectedDoc} 
-          onClose={() => setSelectedDoc(null)} 
-        />
-      )}
     </div>
   );
 }

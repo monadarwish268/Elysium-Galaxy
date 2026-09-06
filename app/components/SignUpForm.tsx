@@ -104,9 +104,9 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
           // 🚀 التوجيه التلقائي المباشر لصفحة galaxy1 عند إنشاء الحساب بنجاح
           router.push('/');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
           setErrors({
-            general: error?.response?.data?.message || 'Failed to create user account. Please try again.',
+            general: (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to create user account. Please try again.',
           });
         },
       }

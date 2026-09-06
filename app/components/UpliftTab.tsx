@@ -2,36 +2,83 @@
 
 import React, { useState } from 'react';
 import { Heart, Send, Sparkles, CheckCircle2, CreditCard, Lock, X } from 'lucide-react';
+import { axiosPost, ApiError } from '@/lib/axios';
+
+interface SubscriptionRecord {
+  id: string;
+  userId: string;
+  planType: string;
+  message: string;
+  amount: number;
+  paymentStatus: string;
+  paidAt: string;
+  isActive: boolean;
+  startDate: string;
+  endDate: string | null;
+}
 
 export default function UpliftTab() {
   const [message, setMessage] = useState('');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Triggered when clicking "Beam Message"
   const handleInitiateSend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    setError(null);
+    if (!message.trim()) {
+      setError('Please write a message before sending.');
+      return;
+    }
     setShowPaymentModal(true);
   };
 
   // Triggered after confirming the payment
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
     setIsProcessing(true);
+    setError(null);
 
-    // Simulate payment gateway delay
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      const storedUser = localStorage.getItem('elysium_user') || localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) as { id?: string } : undefined;
+
+      await axiosPost<
+        { userId?: string; planType: string; message: string; amount: 1; paymentStatus: 'PENDING' },
+        SubscriptionRecord
+      >('subscriptions', {
+        userId: user?.id,
+        planType: 'UPLIFT_BEAM',
+        message: message.trim(),
+        amount: 1,
+        paymentStatus: 'PENDING',
+      });
+
       setShowPaymentModal(false);
       setIsSent(true);
-
-      // Reset form state after success message
-      setTimeout(() => {
-        setMessage('');
-        setIsSent(false);
-      }, 3000);
-    }, 1500);
+      setMessage('');
+      setTimeout(() => setIsSent(false), 3000);
+    } catch (paymentError) {
+      const details = paymentError instanceof ApiError && paymentError.data && typeof paymentError.data === 'object'
+        ? paymentError.data as { errors?: Record<string, string[]>; details?: string; code?: string }
+        : undefined;
+      let validationMessage = paymentError instanceof Error
+        ? paymentError.message
+        : 'Could not save your message.';
+      if (details?.errors) {
+        validationMessage = Object.values(details.errors).flat().join(' ');
+      } else if (details?.code === 'BOOKING_REQUIRED') {
+        validationMessage = 'Please complete a booking before sending a message.';
+      } else if (details?.details?.includes('column')) {
+        validationMessage = 'Supabase is missing the subscription payment columns. Run the SQL migration in Supabase SQL Editor.';
+      } else if (details?.details) {
+        validationMessage = details.details;
+      }
+      setError(validationMessage);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -59,6 +106,7 @@ export default function UpliftTab() {
             maxLength={250}
             disabled={isSent}
           />
+          {error && <p className="text-xs text-red-400">{error}</p>}
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500">
               {250 - message.length} characters left
@@ -67,7 +115,7 @@ export default function UpliftTab() {
             <button
               type="submit"
               disabled={!message.trim() || isSent}
-              className="bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 disabled:opacity-50 text-white px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all shadow-md cursor-pointer"
+              className="bg-linear-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 disabled:opacity-50 text-white px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all shadow-md cursor-pointer"
             >
               {isSent ? (
                 <>
@@ -75,7 +123,7 @@ export default function UpliftTab() {
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4" /> Beam Message ($1.00)
+                  <Send className="w-4 h-4" /> Beam Message
                 </>
               )}
             </button>
@@ -123,7 +171,7 @@ export default function UpliftTab() {
               </div>
               <h3 className="text-xl font-bold text-white">Payment Required</h3>
               <p className="text-xs text-slate-400">
-                Pay $1.00 to send your message to the cosmic galaxy feed.
+                Send your message to the cosmic galaxy feed.
               </p>
             </div>
 
@@ -134,20 +182,20 @@ export default function UpliftTab() {
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Total Due:</span>
-                <span className="text-indigo-400 font-bold">$1.00 USD</span>
+                <span className="text-indigo-400 font-bold">Premium message</span>
               </div>
             </div>
 
             <button
               onClick={handleConfirmPayment}
               disabled={isProcessing}
-              className="w-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white font-semibold py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all"
+              className="w-full bg-linear-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white font-semibold py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-all"
             >
               {isProcessing ? (
                 <span>Processing Payment...</span>
               ) : (
                 <>
-                  <Lock className="w-3.5 h-3.5" /> Pay $1.00 & Beam
+                  <Lock className="w-3.5 h-3.5" /> Send & Save Message
                 </>
               )}
             </button>

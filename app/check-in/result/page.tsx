@@ -12,12 +12,12 @@ export default function ResultPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // Safely check if mounted on client without calling setState in useEffect
-  const isClient = useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false
-  );
+  // Safely check if mounted on client without calling setState in useEffect
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
   // Read score directly from localStorage once on client mount
   const [score] = useState<number | null>(() => {
@@ -28,10 +28,10 @@ export default function ResultPage() {
     return Math.round((step1 + step2 + step3) / 3);
   });
 
-  let mood = "";
-  let planetKey = "";
-  let description = "";
-  let emoji = "";
+  let mood = "";
+  let planetKey = "";
+  let description = "";
+  let emoji = "";
 
   if (score !== null) {
     if (score <= 20) {
@@ -143,9 +143,9 @@ export default function ResultPage() {
             </div>
           </div>
 
-          <p className="mx-auto mt-8 max-w-lg leading-7 text-white/60">
-            {description}
-          </p>
+          <p className="mx-auto mt-8 max-w-lg leading-7 text-white/60">
+            {description}
+          </p>
 
           <button
             type="button"

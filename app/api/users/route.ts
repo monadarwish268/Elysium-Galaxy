@@ -67,9 +67,10 @@ export async function GET() {
       { status: 200, message: 'Users retrieved successfully', data: users },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Server Error';
     return NextResponse.json(
-      { status: 500, message: error.message || 'Server Error' },
+      { status: 500, message: errorMessage },
       { status: 500 }
     );
   }
