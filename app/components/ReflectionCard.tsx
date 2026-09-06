@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { Flame, Sparkles, CheckCircle2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { axiosGet, axiosPost } from '@/lib/axios';
 
 const MOODS = [
   { id: 'heavy', label: 'Still heavy', emoji: '😔' },
@@ -13,18 +15,52 @@ const MOODS = [
 
 interface ReflectionCardProps {
   completedActivitiesCount?: number;
+  planetId?: string;
 }
 
-export default function ReflectionCard({ completedActivitiesCount = 0 }: ReflectionCardProps) {
+export default function ReflectionCard({
+  completedActivitiesCount = 0,
+  planetId,
+}: ReflectionCardProps) {
+  const queryClient = useQueryClient();
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [streak, setStreak] = useState<number>(0);
   const [saved, setSaved] = useState<boolean>(false);
+
+  // 1. Fetching Reflections لحساب الـ Streak من البيانات الحقيقية
+  const { data: reflections = [] } = useQuery({
+    queryKey: ['reflections', planetId],
+    queryFn: async () => {
+      const url = planetId ? `reflections?planetId=${planetId}` : 'reflections';
+      const response = await axiosGet<any[]>(url);
+      return response.data || [];
+    },
+  });
+
+  // 2. Mutation لحفظ الـ Reflection في Supabase
+  const createMutation = useMutation({
+    mutationFn: async (feelingNow: string) => {
+      return await axiosPost('reflections', {
+        userId: 'user-demo-id', // يمكن استبدالها بـ ID المستخدم الحالي مستقبلاً
+        planetId,
+        feelingNow,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reflections', planetId] });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    },
+    onError: (error) => {
+      console.error('Failed to save reflection:', error);
+    },
+  });
 
   const handleSave = () => {
     if (!selectedMood) return;
-    setStreak((prev) => prev + 1);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    const moodObj = MOODS.find((m) => m.id === selectedMood);
+    if (moodObj) {
+      createMutation.mutate(moodObj.label);
+    }
   };
 
   return (
@@ -41,7 +77,7 @@ export default function ReflectionCard({ completedActivitiesCount = 0 }: Reflect
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 bg-[#0e1b38] border border-slate-800/80 px-3 py-1.5 rounded-full text-xs text-slate-300 font-medium">
             <Flame className="w-4 h-4 text-sky-400" />
-            <span><strong className="text-white">{streak}</strong> streak</span>
+            <span><strong className="text-white">{reflections.length}</strong> streak</span>
           </div>
 
           <div className="flex items-center gap-1.5 bg-transparent backdrop-blur-[20px] border border-slate-800/80 px-3 py-1.5 rounded-full text-xs text-slate-300 font-medium">
@@ -78,15 +114,19 @@ export default function ReflectionCard({ completedActivitiesCount = 0 }: Reflect
       <div className="flex items-center gap-4">
         <button
           onClick={handleSave}
-          disabled={!selectedMood}
+          disabled={!selectedMood || createMutation.isPending}
           className={`px-6 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-300 flex items-center gap-2 ${
-            selectedMood
+            selectedMood && !createMutation.isPending
               ? 'bg-indigo-600 backdrop-blur-[20px] hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer active:scale-95'
               : 'bg-indigo-900/20 backdrop-blur-[20px] text-slate-500 border border-indigo-900/40 cursor-not-allowed'
           }`}
         >
           {saved && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-          {saved ? 'Reflection Saved!' : 'Save reflection'}
+          {createMutation.isPending
+            ? 'Saving...'
+            : saved
+            ? 'Reflection Saved!'
+            : 'Save reflection'}
         </button>
       </div>
 
