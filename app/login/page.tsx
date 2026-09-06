@@ -27,6 +27,7 @@ export default function App() {
   const handleAuthSuccess = (user: User) => {
     setCurrentUser(user);
     setShowHeroPreview(false);
+    localStorage.setItem('userId', user.id); // Save user ID for later use
   };
   return (
     <div className="min-h-screen galaxy-bg relative flex flex-col justify-between overflow-x-hidden bg-transparent">

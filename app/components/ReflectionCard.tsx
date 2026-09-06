@@ -40,7 +40,7 @@ export default function ReflectionCard({
   const createMutation = useMutation({
     mutationFn: async (feelingNow: string) => {
       return await axiosPost('reflections', {
-        userId: 'user-demo-id', // يمكن استبدالها بـ ID المستخدم الحالي مستقبلاً
+        userId: localStorage.getItem('userId'), // يمكن استبدالها بـ ID المستخدم الحالي مستقبلاً
         planetId,
         feelingNow,
       });

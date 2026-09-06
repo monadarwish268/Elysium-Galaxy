@@ -102,7 +102,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
           onSuccess(newUser);
 
           // 🚀 التوجيه التلقائي المباشر لصفحة galaxy1 عند إنشاء الحساب بنجاح
-          router.push('/galaxy1');
+          router.push('/');
         },
         onError: (error: any) => {
           setErrors({
@@ -126,7 +126,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
     notifyAuthChange();
 
     onSuccess(providerUser);
-    router.push('/galaxy1');
+    router.push('/');
   };
 
   const isLoading = createUserMutation.isPending || externalLoading;

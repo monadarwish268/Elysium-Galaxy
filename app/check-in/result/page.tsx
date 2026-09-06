@@ -85,12 +85,12 @@ export default function ResultPage() {
       localStorage.removeItem("step1Score");
       localStorage.removeItem("step2Score");
       localStorage.removeItem("step3Score");
-      router.push(`/planet/${planetKey}`);
+      router.push(`/planet/${planetKey}-planet`);
     },
     onError: (error) => {
       console.error("Failed to save check-in:", error);
       // التوجيه حتى لو حصل خطأ لضمان استمرارية تجربة المستخدم
-      router.push(`/planet/${planetKey}`);
+      router.push(`/planet/${planetKey}-planet`);
     },
   });
 

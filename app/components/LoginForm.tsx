@@ -92,7 +92,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
           onSuccess(loggedInUser);
           // التوجيه إلى صفحة المجرة
-          router.push('/galaxy1');
+          router.push('/');
         },
         onError: (error: any) => {
           setStatusMessage({
@@ -133,7 +133,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     notifyAuthChange();
 
     onSuccess(providerUser);
-    router.push('/galaxy1');
+    router.push('/');
   };
 
   const isLoading = loginMutation.isPending || externalLoading;

@@ -210,7 +210,8 @@ const TRIPOLI_PLACES: Record<string, Array<{ name: string; type: string; distanc
 
 export default function DynamicPlanetPage() {
   const router = useRouter();
-  const { name } = useParams();
+  const { name }= useParams();
+  const planetId: string = name?.toString() || "";
 
   // استخراج اسم الكوكب / الـ ID من الـ URL
   const rawName = name?.toString().split("-")[0];
@@ -364,7 +365,7 @@ export default function DynamicPlanetPage() {
         </div>
 
         {/* Reflection Component */}
-        <ReflectionCard completedActivitiesCount={completedActivities.length} />
+        <ReflectionCard completedActivitiesCount={completedActivities.length} planetId={planetId} />
 
       </div>
     </div>
