@@ -179,7 +179,7 @@ export default function UserSettingsPage() {
     }
 
     return (
-        <div className="h-screen max-h-screen galaxy-bg py-9 px-4 flex flex-col items-center justify-center bg-transparent overflow-hidden">
+        <div className="h-screen max-h-screen py-9 px-4 flex flex-col items-center justify-center bg-transparent overflow-hidden">
             <div className="w-full max-w-2xl bg-slate-900/80 backdrop-blur-md border border-cyan-500/20 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-8">
 
                 {/* Header Section */}

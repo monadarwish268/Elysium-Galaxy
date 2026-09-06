@@ -290,8 +290,8 @@ export default function BookingModal({ selectedDoc, onClose }: Props) {
           <div className="flex items-center justify-between text-xs">
             <span className="text-slate-400 font-medium">Session Rate</span>
             <div>
-              <span className="text-white font-bold text-sm">${selectedDoc.price}</span>
-              <span className="text-cyan-400 ml-1 font-semibold">(Free with Premium)</span>
+              <span className="text-white font-bold text-sm">$5{selectedDoc.price}</span>
+              <span className="text-cyan-400 ml-1 font-semibold">(Relax with Premium)</span>
             </div>
           </div>
 

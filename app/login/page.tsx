@@ -30,7 +30,7 @@ export default function App() {
     localStorage.setItem('userId', user.id); // Save user ID for later use
   };
   return (
-    <div className="min-h-screen galaxy-bg relative flex flex-col justify-between overflow-x-hidden bg-transparent">
+    <div className="min-h-screen relative flex flex-col justify-between overflow-x-hidden bg-transparent">
       {/* Main Content Area */}
       <main className="relative z-10 flex-1 flex flex-col justify-center items-center py-10 px-4">
 
